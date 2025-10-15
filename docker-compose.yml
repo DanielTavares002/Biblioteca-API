@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    container_name: biblioteca_db
+    environment:
+      POSTGRES_DB: biblioteca
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: senha123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - biblioteca-network
+
+volumes:
+  postgres_data:
+
+networks:
+  biblioteca-network:
+    driver: bridge
