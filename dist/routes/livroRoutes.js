@@ -5,84 +5,44 @@ const livroController_1 = require("../controllers/livroController");
 const router = (0, express_1.Router)();
 /**
  * @swagger
- * components:
- *   schemas:
- *     Livro:
- *       type: object
- *       required:
- *         - titulo
- *         - autor
- *         - isbn
- *         - editora
- *         - ano
- *       properties:
- *         id:
- *           type: integer
- *           description: ID auto-gerado do livro
- *         titulo:
- *           type: string
- *           description: Título do livro
- *         autor:
- *           type: string
- *           description: Autor do livro
- *         isbn:
- *           type: string
- *           description: ISBN do livro
- *         editora:
- *           type: string
- *           description: Editora do livro
- *         ano:
- *           type: integer
- *           description: Ano de publicação
- *         disponivel:
- *           type: boolean
- *           description: Status de disponibilidade
- *         createdAt:
- *           type: string
- *           format: date-time
- *         updatedAt:
- *           type: string
- *           format: date-time
- *     LivroInput:
- *       type: object
- *       required:
- *         - titulo
- *         - autor
- *         - isbn
- *         - editora
- *         - ano
- *       properties:
- *         titulo:
- *           type: string
- *         autor:
- *           type: string
- *         isbn:
- *           type: string
- *         editora:
- *           type: string
- *         ano:
- *           type: integer
- *         disponivel:
- *           type: boolean
- */
-/**
- * @swagger
  * tags:
  *   name: Livros
- *   description: Gerenciamento de livros da biblioteca
+ *   description: Gerenciamento de livros
  */
 /**
  * @swagger
- * /api/livros:
+ * /livros:
  *   post:
- *     summary: Criar um novo livro
+ *     summary: Cria um novo livro
  *     tags: [Livros]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/LivroInput'
+ *             type: object
+ *             required:
+ *               - titulo
+ *               - autor
+ *               - isbn
+ *               - editora
+ *               - ano
+ *             properties:
+ *               titulo:
+ *                 type: string
+ *                 example: "Dom Casmurro"
+ *               autor:
+ *                 type: string
+ *                 example: "Machado de Assis"
+ *               isbn:
+ *                 type: string
+ *                 example: "1234567890123"
+ *               editora:
+ *                 type: string
+ *                 example: "Editora Brasil"
+ *               ano:
+ *                 type: integer
+ *                 example: 1899
  *     responses:
  *       201:
  *         description: Livro criado com sucesso
@@ -92,30 +52,52 @@ const router = (0, express_1.Router)();
  *               $ref: '#/components/schemas/Livro'
  *       400:
  *         description: Dados inválidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/', livroController_1.criarLivro);
 /**
  * @swagger
- * /api/livros:
+ * /livros:
  *   get:
- *     summary: Listar todos os livros
+ *     summary: Lista todos os livros
  *     tags: [Livros]
+ *     parameters:
+ *       - in: query
+ *         name: pagina
+ *         schema:
+ *           type: integer
+ *         description: Número da página
+ *       - in: query
+ *         name: limite
+ *         schema:
+ *           type: integer
+ *         description: Quantidade de itens por página
  *     responses:
  *       200:
- *         description: Lista de livros recuperada com sucesso
+ *         description: Lista de livros
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Livro'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 livros:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Livro'
+ *                 paginacao:
+ *                   type: object
  */
 router.get('/', livroController_1.listarLivros);
 /**
  * @swagger
- * /api/livros/disponiveis:
+ * /livros/disponiveis:
  *   get:
- *     summary: Listar livros disponíveis
+ *     summary: Lista livros disponíveis
  *     tags: [Livros]
  *     responses:
  *       200:
@@ -123,23 +105,57 @@ router.get('/', livroController_1.listarLivros);
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Livro'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 livros:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Livro'
  */
 router.get('/disponiveis', livroController_1.buscarLivrosDisponiveis);
 /**
  * @swagger
- * /api/livros/{id}:
+ * /livros/buscar:
  *   get:
- *     summary: Buscar livro por ID
+ *     summary: Busca livros por título
+ *     tags: [Livros]
+ *     parameters:
+ *       - in: query
+ *         name: titulo
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Título para busca
+ *     responses:
+ *       200:
+ *         description: Livros encontrados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 livros:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Livro'
+ */
+router.get('/buscar', livroController_1.buscarLivrosPorTitulo);
+/**
+ * @swagger
+ * /livros/{id}:
+ *   get:
+ *     summary: Busca um livro por ID
  *     tags: [Livros]
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: integer
- *         required: true
  *         description: ID do livro
  *     responses:
  *       200:
@@ -150,30 +166,47 @@ router.get('/disponiveis', livroController_1.buscarLivrosDisponiveis);
  *               $ref: '#/components/schemas/Livro'
  *       404:
  *         description: Livro não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/:id', livroController_1.buscarLivro);
 /**
  * @swagger
- * /api/livros/{id}:
+ * /livros/{id}:
  *   put:
- *     summary: Atualizar livro
+ *     summary: Atualiza um livro
  *     tags: [Livros]
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: integer
- *         required: true
  *         description: ID do livro
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/LivroInput'
+ *             type: object
+ *             properties:
+ *               titulo:
+ *                 type: string
+ *               autor:
+ *                 type: string
+ *               isbn:
+ *                 type: string
+ *               editora:
+ *                 type: string
+ *               ano:
+ *                 type: integer
+ *               disponivel:
+ *                 type: boolean
  *     responses:
  *       200:
- *         description: Livro atualizado com sucesso
+ *         description: Livro atualizado
  *         content:
  *           application/json:
  *             schema:
@@ -184,16 +217,16 @@ router.get('/:id', livroController_1.buscarLivro);
 router.put('/:id', livroController_1.atualizarLivro);
 /**
  * @swagger
- * /api/livros/{id}:
+ * /livros/{id}:
  *   delete:
- *     summary: Deletar livro
+ *     summary: Deleta um livro
  *     tags: [Livros]
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: integer
- *         required: true
  *         description: ID do livro
  *     responses:
  *       200:

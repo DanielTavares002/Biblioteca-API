@@ -1,23 +1,23 @@
 export declare class LivroService {
     criarLivro(dados: any): Promise<{
-        id: number;
-        isbn: string;
         titulo: string;
         autor: string;
+        isbn: string;
         editora: string;
         ano: number;
+        id: number;
         disponivel: boolean;
         createdAt: Date;
         updatedAt: Date;
     }>;
     listarLivros(pagina?: number, limite?: number): Promise<{
         livros: {
-            id: number;
-            isbn: string;
             titulo: string;
             autor: string;
+            isbn: string;
             editora: string;
             ano: number;
+            id: number;
             disponivel: boolean;
             createdAt: Date;
             updatedAt: Date;
@@ -30,34 +30,34 @@ export declare class LivroService {
         };
     }>;
     buscarLivroPorId(id: number): Promise<{
-        id: number;
-        isbn: string;
         titulo: string;
         autor: string;
+        isbn: string;
         editora: string;
         ano: number;
+        id: number;
         disponivel: boolean;
         createdAt: Date;
         updatedAt: Date;
     }>;
     buscarLivrosPorTitulo(titulo: string): Promise<{
-        id: number;
-        isbn: string;
         titulo: string;
         autor: string;
+        isbn: string;
         editora: string;
         ano: number;
+        id: number;
         disponivel: boolean;
         createdAt: Date;
         updatedAt: Date;
     }[]>;
     atualizarLivro(id: number, dados: any): Promise<{
-        id: number;
-        isbn: string;
         titulo: string;
         autor: string;
+        isbn: string;
         editora: string;
         ano: number;
+        id: number;
         disponivel: boolean;
         createdAt: Date;
         updatedAt: Date;
@@ -66,12 +66,12 @@ export declare class LivroService {
         message: string;
     }>;
     listarLivrosDisponiveis(): Promise<{
-        id: number;
-        isbn: string;
         titulo: string;
         autor: string;
+        isbn: string;
         editora: string;
         ano: number;
+        id: number;
         disponivel: boolean;
         createdAt: Date;
         updatedAt: Date;
