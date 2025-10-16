@@ -12,30 +12,47 @@ const usuarioRoutes_1 = __importDefault(require("./routes/usuarioRoutes"));
 const emprestimoRoutes_1 = __importDefault(require("./routes/emprestimoRoutes"));
 const app = (0, express_1.default)();
 const PORT = parseInt(process.env.PORT || '3000');
-const HOST = '0.0.0.0';
+// Configuração CORS
+const corsOptions = {
+    origin: [
+        'https://3000-firebase-bibilioteca-api-1760553480549.cluster-thle3dudhffpwss7zs5hxaeu2o.cloudworkstations.dev',
+        'http://localhost:3000'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+};
 // Middlewares
 app.use((0, helmet_1.default)());
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 // Swagger Documentation
 (0, swagger_1.setupSwagger)(app);
-// Routes
-app.use('/api/livros', livroRoutes_1.default);
-app.use('/api/usuarios', usuarioRoutes_1.default);
-app.use('/api/emprestimos', emprestimoRoutes_1.default);
-// Health check
+// Rotas
+app.use('/livros', livroRoutes_1.default);
+app.use('/usuarios', usuarioRoutes_1.default);
+app.use('/emprestimos', emprestimoRoutes_1.default);
+// Rota padrão
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Biblioteca API está funcionando!',
+        documentation: '/api-docs'
+    });
+});
+// Rota de saúde
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', message: 'API está funcionando!' });
+    res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
-// 404 handler
+// Middleware de erro para rotas não encontradas
 app.use('*', (req, res) => {
-    res.status(404).json({ message: 'Rota não encontrada' });
+    res.status(404).json({
+        message: 'Rota não encontrada',
+        availableRoutes: ['/livros', '/usuarios', '/emprestimos', '/api-docs', '/health']
+    });
 });
-// Servidor corrigido
-app.listen(PORT, HOST, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
     console.log(`📚 Documentação disponível em: http://localhost:${PORT}/api-docs`);
-    console.log(`🌐 Acessível também em: http://${HOST}:${PORT}/api-docs`);
+    console.log(`🌐 Acessível também em: http://0.0.0.0:${PORT}/api-docs`);
 });
-exports.default = app;
 //# sourceMappingURL=server.js.map

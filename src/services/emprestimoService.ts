@@ -4,7 +4,6 @@ export class EmprestimoService {
 
   async realizarEmprestimo(usuarioId: number, livroId: number) {
     try {
-      // Verificar se usuário existe
       const usuario = await prisma.usuario.findUnique({
         where: { id: usuarioId }
       });
@@ -13,7 +12,6 @@ export class EmprestimoService {
         throw new Error('Usuário não encontrado');
       }
 
-      // Verificar se livro existe e está disponível
       const livro = await prisma.livro.findUnique({
         where: { id: livroId }
       });
@@ -26,7 +24,6 @@ export class EmprestimoService {
         throw new Error('Livro não disponível para empréstimo');
       }
 
-      // Verificar se usuário já tem este livro emprestado
       const emprestimoAtivo = await prisma.emprestimo.findFirst({
         where: {
           usuarioId,
@@ -39,9 +36,7 @@ export class EmprestimoService {
         throw new Error('Usuário já possui este livro emprestado');
       }
 
-      // Realizar o empréstimo em uma transação
       const resultado = await prisma.$transaction(async (tx) => {
-        // Criar o empréstimo
         const emprestimo = await tx.emprestimo.create({
           data: {
             usuarioId,
@@ -49,7 +44,6 @@ export class EmprestimoService {
           }
         });
 
-        // Marcar livro como indisponível
         await tx.livro.update({
           where: { id: livroId },
           data: {
@@ -68,7 +62,6 @@ export class EmprestimoService {
 
   async devolverLivro(emprestimoId: number) {
     try {
-      // Buscar empréstimo
       const emprestimo = await prisma.emprestimo.findUnique({
         where: { id: emprestimoId },
         include: {
@@ -84,9 +77,7 @@ export class EmprestimoService {
         throw new Error('Livro já foi devolvido');
       }
 
-      // Realizar devolução em transação
       const resultado = await prisma.$transaction(async (tx) => {
-        // Atualizar empréstimo
         const emprestimoAtualizado = await tx.emprestimo.update({
           where: { id: emprestimoId },
           data: {
@@ -95,7 +86,6 @@ export class EmprestimoService {
           }
         });
 
-        // Marcar livro como disponível
         await tx.livro.update({
           where: { id: emprestimo.livroId },
           data: {

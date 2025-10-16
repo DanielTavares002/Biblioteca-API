@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { EmprestimoService } from '../services';
+import { EmprestimoService } from '../services/emprestimoService';
 
 const emprestimoService = new EmprestimoService();
 
@@ -82,7 +82,7 @@ export const listarEmprestimos = async (req: Request, res: Response) => {
     if (ativos === 'true') {
       emprestimos = await emprestimoService.listarEmprestimosAtivos();
     } else {
-      // Para listar todos, precisamos criar este método no service
+      // Este método PRECISA existir no EmprestimoService
       emprestimos = await emprestimoService.listarTodosEmprestimos();
     }
 

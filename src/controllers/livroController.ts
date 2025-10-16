@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { LivroService } from '../services';
+import { LivroService } from '../services/livroService';
 
 const livroService = new LivroService();
 

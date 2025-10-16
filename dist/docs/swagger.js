@@ -16,8 +16,12 @@ const options = {
         },
         servers: [
             {
+                url: 'https://3000-firebase-bibilioteca-api-1760553480549.cluster-thle3dudhffpwss7zs5hxaeu2o.cloudworkstations.dev',
+                description: 'Servidor Cloud Workstations',
+            },
+            {
                 url: 'http://localhost:3000',
-                description: 'Servidor de desenvolvimento',
+                description: 'Servidor local',
             },
         ],
         components: {
@@ -71,7 +75,7 @@ const options = {
             }
         }
     },
-    apis: ['./src/routes/*.ts'], // Apenas as rotas para documentação
+    apis: ['./src/routes/*.ts'],
 };
 const specs = (0, swagger_jsdoc_1.default)(options);
 const setupSwagger = (app) => {

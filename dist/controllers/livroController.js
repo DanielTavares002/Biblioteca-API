@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buscarLivrosPorTitulo = exports.buscarLivrosDisponiveis = exports.deletarLivro = exports.atualizarLivro = exports.buscarLivro = exports.listarLivros = exports.criarLivro = void 0;
-const services_1 = require("../services");
-const livroService = new services_1.LivroService();
+const livroService_1 = require("../services/livroService");
+const livroService = new livroService_1.LivroService();
 /**
  * Cria um novo livro
  */

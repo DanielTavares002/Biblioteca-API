@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.listarEmprestimosAtivos = exports.historicoUsuario = exports.devolverLivro = exports.buscarEmprestimo = exports.listarEmprestimos = exports.criarEmprestimo = void 0;
-const services_1 = require("../services");
-const emprestimoService = new services_1.EmprestimoService();
+const emprestimoService_1 = require("../services/emprestimoService");
+const emprestimoService = new emprestimoService_1.EmprestimoService();
 /**
  * @swagger
  * /emprestimos:
@@ -77,7 +77,7 @@ const listarEmprestimos = async (req, res) => {
             emprestimos = await emprestimoService.listarEmprestimosAtivos();
         }
         else {
-            // Para listar todos, precisamos criar este método no service
+            // Este método PRECISA existir no EmprestimoService
             emprestimos = await emprestimoService.listarTodosEmprestimos();
         }
         res.json({
