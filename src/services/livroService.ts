@@ -4,7 +4,6 @@ export class LivroService {
   
   async criarLivro(dados: any) {
     try {
-      // Verificar se ISBN já existe
       const livroExistente = await prisma.livro.findUnique({
         where: { isbn: dados.isbn }
       });
@@ -13,7 +12,6 @@ export class LivroService {
         throw new Error('Já existe um livro com este ISBN');
       }
 
-      // Criar o livro
       const livro = await prisma.livro.create({
         data: {
           titulo: dados.titulo,
@@ -92,7 +90,6 @@ export class LivroService {
 
   async atualizarLivro(id: number, dados: any) {
     try {
-      // Verificar se livro existe
       const livroExistente = await prisma.livro.findUnique({
         where: { id }
       });
@@ -101,7 +98,6 @@ export class LivroService {
         throw new Error('Livro não encontrado');
       }
 
-      // Se estiver atualizando ISBN, verificar se não conflita
       if (dados.isbn && dados.isbn !== livroExistente.isbn) {
         const isbnExistente = await prisma.livro.findUnique({
           where: { isbn: dados.isbn }
@@ -125,7 +121,6 @@ export class LivroService {
 
   async deletarLivro(id: number) {
     try {
-      // Verificar se livro existe
       const livroExistente = await prisma.livro.findUnique({
         where: { id },
         include: {

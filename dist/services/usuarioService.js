@@ -8,7 +8,6 @@ const prisma_1 = __importDefault(require("../utils/prisma"));
 class UsuarioService {
     async criarUsuario(dados) {
         try {
-            // Verificar se email já existe
             const usuarioExistente = await prisma_1.default.usuario.findUnique({
                 where: { email: dados.email }
             });
@@ -35,26 +34,12 @@ class UsuarioService {
                 prisma_1.default.usuario.findMany({
                     skip,
                     take: limite,
-                    orderBy: { nome: 'asc' },
-                    include: {
-                        _count: {
-                            select: {
-                                emprestimos: {
-                                    where: {
-                                        devolvido: false
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    orderBy: { nome: 'asc' }
                 }),
                 prisma_1.default.usuario.count()
             ]);
             return {
-                usuarios: usuarios.map(usuario => ({
-                    ...usuario,
-                    emprestimosAtivos: usuario._count.emprestimos
-                })),
+                usuarios,
                 paginacao: {
                     pagina,
                     limite,
@@ -93,14 +78,12 @@ class UsuarioService {
     }
     async atualizarUsuario(id, dados) {
         try {
-            // Verificar se usuário existe
             const usuarioExistente = await prisma_1.default.usuario.findUnique({
                 where: { id }
             });
             if (!usuarioExistente) {
                 throw new Error('Usuário não encontrado');
             }
-            // Se estiver atualizando email, verificar conflito
             if (dados.email && dados.email !== usuarioExistente.email) {
                 const emailExistente = await prisma_1.default.usuario.findUnique({
                     where: { email: dados.email }
@@ -121,7 +104,6 @@ class UsuarioService {
     }
     async deletarUsuario(id) {
         try {
-            // Verificar se usuário existe
             const usuarioExistente = await prisma_1.default.usuario.findUnique({
                 where: { id },
                 include: {
@@ -139,7 +121,6 @@ class UsuarioService {
             if (!usuarioExistente) {
                 throw new Error('Usuário não encontrado');
             }
-            // Verificar se há empréstimos ativos
             if (usuarioExistente._count.emprestimos > 0) {
                 throw new Error('Não é possível deletar usuário com empréstimos ativos');
             }

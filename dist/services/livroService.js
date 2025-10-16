@@ -8,14 +8,12 @@ const prisma_1 = __importDefault(require("../utils/prisma"));
 class LivroService {
     async criarLivro(dados) {
         try {
-            // Verificar se ISBN já existe
             const livroExistente = await prisma_1.default.livro.findUnique({
                 where: { isbn: dados.isbn }
             });
             if (livroExistente) {
                 throw new Error('Já existe um livro com este ISBN');
             }
-            // Criar o livro
             const livro = await prisma_1.default.livro.create({
                 data: {
                     titulo: dados.titulo,
@@ -88,14 +86,12 @@ class LivroService {
     }
     async atualizarLivro(id, dados) {
         try {
-            // Verificar se livro existe
             const livroExistente = await prisma_1.default.livro.findUnique({
                 where: { id }
             });
             if (!livroExistente) {
                 throw new Error('Livro não encontrado');
             }
-            // Se estiver atualizando ISBN, verificar se não conflita
             if (dados.isbn && dados.isbn !== livroExistente.isbn) {
                 const isbnExistente = await prisma_1.default.livro.findUnique({
                     where: { isbn: dados.isbn }
@@ -116,7 +112,6 @@ class LivroService {
     }
     async deletarLivro(id) {
         try {
-            // Verificar se livro existe
             const livroExistente = await prisma_1.default.livro.findUnique({
                 where: { id },
                 include: {

@@ -9,10 +9,6 @@ export declare class UsuarioService {
     }>;
     listarUsuarios(pagina?: number, limite?: number): Promise<{
         usuarios: {
-            emprestimosAtivos: number;
-            _count: {
-                emprestimos: number;
-            };
             nome: string;
             email: string;
             telefone: string;

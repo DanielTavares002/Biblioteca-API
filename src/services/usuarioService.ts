@@ -4,7 +4,6 @@ export class UsuarioService {
 
   async criarUsuario(dados: any) {
     try {
-      // Verificar se email já existe
       const usuarioExistente = await prisma.usuario.findUnique({
         where: { email: dados.email }
       });
@@ -35,27 +34,13 @@ export class UsuarioService {
         prisma.usuario.findMany({
           skip,
           take: limite,
-          orderBy: { nome: 'asc' },
-          include: {
-            _count: {
-              select: {
-                emprestimos: {
-                  where: {
-                    devolvido: false
-                  }
-                }
-              }
-            }
-          }
+          orderBy: { nome: 'asc' }
         }),
         prisma.usuario.count()
       ]);
 
       return {
-        usuarios: usuarios.map(usuario => ({
-          ...usuario,
-          emprestimosAtivos: usuario._count.emprestimos
-        })),
+        usuarios,
         paginacao: {
           pagina,
           limite,
@@ -96,7 +81,6 @@ export class UsuarioService {
 
   async atualizarUsuario(id: number, dados: any) {
     try {
-      // Verificar se usuário existe
       const usuarioExistente = await prisma.usuario.findUnique({
         where: { id }
       });
@@ -105,7 +89,6 @@ export class UsuarioService {
         throw new Error('Usuário não encontrado');
       }
 
-      // Se estiver atualizando email, verificar conflito
       if (dados.email && dados.email !== usuarioExistente.email) {
         const emailExistente = await prisma.usuario.findUnique({
           where: { email: dados.email }
@@ -129,7 +112,6 @@ export class UsuarioService {
 
   async deletarUsuario(id: number) {
     try {
-      // Verificar se usuário existe
       const usuarioExistente = await prisma.usuario.findUnique({
         where: { id },
         include: {
@@ -149,7 +131,6 @@ export class UsuarioService {
         throw new Error('Usuário não encontrado');
       }
 
-      // Verificar se há empréstimos ativos
       if (usuarioExistente._count.emprestimos > 0) {
         throw new Error('Não é possível deletar usuário com empréstimos ativos');
       }
