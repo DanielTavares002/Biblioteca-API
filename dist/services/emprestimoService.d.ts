@@ -21,15 +21,15 @@ export declare class EmprestimoService {
     }>;
     listarEmprestimosAtivos(): Promise<({
         livro: {
+            id: number;
+            isbn: string;
             titulo: string;
             autor: string;
-            isbn: string;
-            id: number;
         };
         usuario: {
-            nome: string;
-            email: string;
             id: number;
+            email: string;
+            nome: string;
         };
     } & {
         id: number;
@@ -43,15 +43,15 @@ export declare class EmprestimoService {
     })[]>;
     listarTodosEmprestimos(): Promise<({
         livro: {
+            id: number;
+            isbn: string;
             titulo: string;
             autor: string;
-            isbn: string;
-            id: number;
         };
         usuario: {
-            nome: string;
-            email: string;
             id: number;
+            email: string;
+            nome: string;
         };
     } & {
         id: number;
@@ -65,9 +65,9 @@ export declare class EmprestimoService {
     })[]>;
     historicoUsuario(usuarioId: number): Promise<({
         livro: {
+            isbn: string;
             titulo: string;
             autor: string;
-            isbn: string;
         };
     } & {
         id: number;
@@ -81,15 +81,15 @@ export declare class EmprestimoService {
     })[]>;
     buscarEmprestimoPorId(id: number): Promise<{
         livro: {
+            id: number;
+            isbn: string;
             titulo: string;
             autor: string;
-            isbn: string;
-            id: number;
         };
         usuario: {
-            nome: string;
-            email: string;
             id: number;
+            email: string;
+            nome: string;
         };
     } & {
         id: number;

@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deletarUsuario = exports.atualizarUsuario = exports.buscarUsuario = exports.listarUsuarios = exports.criarUsuario = void 0;
+const prisma_1 = __importDefault(require("../utils/prisma"));
 const usuarioService_1 = require("../services/usuarioService");
 const usuarioService = new usuarioService_1.UsuarioService();
 /**
@@ -86,16 +90,39 @@ const listarUsuarios = async (req, res) => {
     try {
         const pagina = parseInt(req.query.pagina) || 1;
         const limite = parseInt(req.query.limite) || 10;
-        const resultado = await usuarioService.listarUsuarios(pagina, limite);
-        res.json({
-            message: 'Usuários recuperados com sucesso',
-            ...resultado
+        const pular = (pagina - 1) * limite;
+        const usuarios = await prisma_1.default.usuario.findMany({
+            skip: pular,
+            take: limite,
+            select: {
+                id: true,
+                nome: true,
+                email: true,
+                telefone: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+        const total = await prisma_1.default.usuario.count();
+        res.status(200).json({
+            message: "Usuários listados com sucesso",
+            usuarios: usuarios, // Garanta que está retornando os dados
+            paginacao: {
+                pagina,
+                limite,
+                total,
+                totalPaginas: Math.ceil(total / limite)
+            }
         });
     }
     catch (error) {
-        console.error('Erro ao listar usuários:', error);
+        console.error("Erro ao listar usuários:", error);
         res.status(500).json({
-            error: error.message
+            message: "Erro interno do servidor",
+            error: error instanceof Error ? error.message : "Erro desconhecido"
         });
     }
 };

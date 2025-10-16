@@ -23,30 +23,28 @@ const options = {
     components: {
       schemas: {
         Livro: {
-          type: 'object',
-          required: ['titulo', 'autor', 'isbn', 'editora', 'ano'],
+          type: "object",
           properties: {
-            id: { type: 'integer' },
-            titulo: { type: 'string' },
-            autor: { type: 'string' },
-            isbn: { type: 'string' },
-            editora: { type: 'string' },
-            ano: { type: 'integer' },
-            disponivel: { type: 'boolean' },
-            createdAt: { type: 'string', format: 'date-time' },
-            updatedAt: { type: 'string', format: 'date-time' }
+            id: { type: "integer", example: 1 },
+            titulo: { type: "string", example: "Dom Casmurro" },
+            autor: { type: "string", example: "Machado de Assis" },
+            isbn: { type: "string", example: "978-85-7232-144-9" },
+            editora: { type: "string", example: "Editora Martin Claret" },
+            ano: { type: "integer", example: 1899 },
+            disponivel: { type: "boolean", example: true },
+            createdAt: { type: "string", format: "date-time", example: "2024-01-15T10:00:00.000Z" },
+            updatedAt: { type: "string", format: "date-time", example: "2024-01-15T10:00:00.000Z" }
           }
         },
         Usuario: {
-          type: 'object',
-          required: ['nome', 'email', 'telefone'],
+          type: "object",
           properties: {
-            id: { type: 'integer' },
-            nome: { type: 'string' },
-            email: { type: 'string' },
-            telefone: { type: 'string' },
-            createdAt: { type: 'string', format: 'date-time' },
-            updatedAt: { type: 'string', format: 'date-time' }
+            id: { type: "integer", example: 1 },
+            nome: { type: "string", example: "João Silva" },
+            email: { type: "string", example: "joao@email.com" },
+            telefone: { type: "string", example: "(11) 99999-9999" },
+            createdAt: { type: "string", format: "date-time", example: "2024-01-15T10:00:00.000Z" },
+            updatedAt: { type: "string", format: "date-time", example: "2024-01-15T10:00:00.000Z" }
           }
         },
         Emprestimo: {

@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buscarLivrosPorTitulo = exports.buscarLivrosDisponiveis = exports.deletarLivro = exports.atualizarLivro = exports.buscarLivro = exports.listarLivros = exports.criarLivro = void 0;
+const prisma_1 = __importDefault(require("../utils/prisma"));
 const livroService_1 = require("../services/livroService");
 const livroService = new livroService_1.LivroService();
 /**
@@ -42,16 +46,42 @@ const listarLivros = async (req, res) => {
     try {
         const pagina = parseInt(req.query.pagina) || 1;
         const limite = parseInt(req.query.limite) || 10;
-        const resultado = await livroService.listarLivros(pagina, limite);
-        res.json({
-            message: 'Livros recuperados com sucesso',
-            ...resultado
+        const pular = (pagina - 1) * limite;
+        const livros = await prisma_1.default.livro.findMany({
+            skip: pular,
+            take: limite,
+            select: {
+                id: true,
+                titulo: true,
+                autor: true,
+                isbn: true,
+                editora: true,
+                ano: true,
+                disponivel: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+            orderBy: {
+                titulo: 'asc'
+            }
+        });
+        const total = await prisma_1.default.livro.count();
+        res.status(200).json({
+            message: "Livros listados com sucesso",
+            livros: livros, // Garanta que está retornando os dados
+            paginacao: {
+                pagina,
+                limite,
+                total,
+                totalPaginas: Math.ceil(total / limite)
+            }
         });
     }
     catch (error) {
-        console.error('Erro ao listar livros:', error);
+        console.error("Erro ao listar livros:", error);
         res.status(500).json({
-            error: error.message
+            message: "Erro interno do servidor",
+            error: error instanceof Error ? error.message : "Erro desconhecido"
         });
     }
 };

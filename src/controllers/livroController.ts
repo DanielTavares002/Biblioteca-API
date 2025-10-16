@@ -1,3 +1,4 @@
+import prisma from '../utils/prisma';
 import { Request, Response } from 'express';
 import { LivroService } from '../services/livroService';
 
@@ -44,17 +45,44 @@ export const listarLivros = async (req: Request, res: Response) => {
   try {
     const pagina = parseInt(req.query.pagina as string) || 1;
     const limite = parseInt(req.query.limite as string) || 10;
+    const pular = (pagina - 1) * limite;
 
-    const resultado = await livroService.listarLivros(pagina, limite);
-
-    res.json({
-      message: 'Livros recuperados com sucesso',
-      ...resultado
+    const livros = await prisma.livro.findMany({
+      skip: pular,
+      take: limite,
+      select: {
+        id: true,
+        titulo: true,
+        autor: true,
+        isbn: true,
+        editora: true,
+        ano: true,
+        disponivel: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        titulo: 'asc'
+      }
     });
-  } catch (error: any) {
-    console.error('Erro ao listar livros:', error);
+
+    const total = await prisma.livro.count();
+
+    res.status(200).json({
+      message: "Livros listados com sucesso",
+      livros: livros, // Garanta que está retornando os dados
+      paginacao: {
+        pagina,
+        limite,
+        total,
+        totalPaginas: Math.ceil(total / limite)
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao listar livros:", error);
     res.status(500).json({ 
-      error: error.message 
+      message: "Erro interno do servidor",
+      error: error instanceof Error ? error.message : "Erro desconhecido"
     });
   }
 };

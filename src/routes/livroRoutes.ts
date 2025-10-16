@@ -79,15 +79,17 @@ router.post('/', criarLivro)
  *         name: pagina
  *         schema:
  *           type: integer
+ *           example: 1
  *         description: Número da página
  *       - in: query
  *         name: limite
  *         schema:
  *           type: integer
+ *           example: 10
  *         description: Quantidade de itens por página
  *     responses:
  *       200:
- *         description: Lista de livros
+ *         description: Lista de livros retornada com sucesso
  *         content:
  *           application/json:
  *             schema:
@@ -95,6 +97,7 @@ router.post('/', criarLivro)
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "Livros listados com sucesso"
  *                 livros:
  *                   type: array
  *                   items:

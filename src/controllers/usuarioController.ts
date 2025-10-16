@@ -1,3 +1,4 @@
+import prisma from '../utils/prisma';
 import { Request, Response } from 'express';
 import { UsuarioService } from '../services/usuarioService';
 
@@ -88,17 +89,41 @@ export const listarUsuarios = async (req: Request, res: Response) => {
   try {
     const pagina = parseInt(req.query.pagina as string) || 1;
     const limite = parseInt(req.query.limite as string) || 10;
+    const pular = (pagina - 1) * limite;
 
-    const resultado = await usuarioService.listarUsuarios(pagina, limite);
-
-    res.json({
-      message: 'Usuários recuperados com sucesso',
-      ...resultado
+    const usuarios = await prisma.usuario.findMany({
+      skip: pular,
+      take: limite,
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        telefone: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
-  } catch (error: any) {
-    console.error('Erro ao listar usuários:', error);
+
+    const total = await prisma.usuario.count();
+
+    res.status(200).json({
+      message: "Usuários listados com sucesso",
+      usuarios: usuarios, // Garanta que está retornando os dados
+      paginacao: {
+        pagina,
+        limite,
+        total,
+        totalPaginas: Math.ceil(total / limite)
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao listar usuários:", error);
     res.status(500).json({ 
-      error: error.message 
+      message: "Erro interno do servidor",
+      error: error instanceof Error ? error.message : "Erro desconhecido"
     });
   }
 };

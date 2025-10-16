@@ -1,20 +1,20 @@
 export declare class UsuarioService {
     criarUsuario(dados: any): Promise<{
-        nome: string;
-        email: string;
-        telefone: string;
         id: number;
         createdAt: Date;
         updatedAt: Date;
+        email: string;
+        nome: string;
+        telefone: string;
     }>;
     listarUsuarios(pagina?: number, limite?: number): Promise<{
         usuarios: {
-            nome: string;
-            email: string;
-            telefone: string;
             id: number;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            nome: string;
+            telefone: string;
         }[];
         paginacao: {
             pagina: number;
@@ -26,12 +26,12 @@ export declare class UsuarioService {
     buscarUsuarioPorId(id: number): Promise<{
         emprestimos: ({
             livro: {
+                id: number;
+                isbn: string;
                 titulo: string;
                 autor: string;
-                isbn: string;
                 editora: string;
                 ano: number;
-                id: number;
                 disponivel: boolean;
                 createdAt: Date;
                 updatedAt: Date;
@@ -47,20 +47,20 @@ export declare class UsuarioService {
             dataDevolucao: Date | null;
         })[];
     } & {
-        nome: string;
-        email: string;
-        telefone: string;
         id: number;
         createdAt: Date;
         updatedAt: Date;
+        email: string;
+        nome: string;
+        telefone: string;
     }>;
     atualizarUsuario(id: number, dados: any): Promise<{
-        nome: string;
-        email: string;
-        telefone: string;
         id: number;
         createdAt: Date;
         updatedAt: Date;
+        email: string;
+        nome: string;
+        telefone: string;
     }>;
     deletarUsuario(id: number): Promise<{
         message: string;
