@@ -1,10 +1,8 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buscarLivrosDisponiveis = exports.deletarLivro = exports.atualizarLivro = exports.buscarLivro = exports.listarLivros = exports.criarLivro = void 0;
-const client_1 = __importDefault(require("../prisma/client"));
+exports.buscarLivrosPorTitulo = exports.buscarLivrosDisponiveis = exports.deletarLivro = exports.atualizarLivro = exports.buscarLivro = exports.listarLivros = exports.criarLivro = void 0;
+const services_1 = require("../services");
+const livroService = new services_1.LivroService();
 /**
  * Cria um novo livro
  */
@@ -17,23 +15,12 @@ const criarLivro = async (req, res) => {
                 error: 'Todos os campos são obrigatórios: titulo, autor, isbn, editora, ano'
             });
         }
-        // Verifica se ISBN já existe
-        const livroExistente = await client_1.default.livro.findUnique({
-            where: { isbn }
-        });
-        if (livroExistente) {
-            return res.status(400).json({
-                error: 'Já existe um livro com este ISBN'
-            });
-        }
-        const livro = await client_1.default.livro.create({
-            data: {
-                titulo,
-                autor,
-                isbn,
-                editora,
-                ano: parseInt(ano)
-            }
+        const livro = await livroService.criarLivro({
+            titulo,
+            autor,
+            isbn,
+            editora,
+            ano: parseInt(ano)
         });
         res.status(201).json({
             message: 'Livro criado com sucesso',
@@ -42,8 +29,8 @@ const criarLivro = async (req, res) => {
     }
     catch (error) {
         console.error('Erro ao criar livro:', error);
-        res.status(500).json({
-            error: 'Erro interno do servidor ao criar livro'
+        res.status(400).json({
+            error: error.message
         });
     }
 };
@@ -53,21 +40,18 @@ exports.criarLivro = criarLivro;
  */
 const listarLivros = async (req, res) => {
     try {
-        const livros = await client_1.default.livro.findMany({
-            orderBy: {
-                titulo: 'asc'
-            }
-        });
+        const pagina = parseInt(req.query.pagina) || 1;
+        const limite = parseInt(req.query.limite) || 10;
+        const resultado = await livroService.listarLivros(pagina, limite);
         res.json({
             message: 'Livros recuperados com sucesso',
-            count: livros.length,
-            livros
+            ...resultado
         });
     }
     catch (error) {
         console.error('Erro ao listar livros:', error);
         res.status(500).json({
-            error: 'Erro interno do servidor ao listar livros'
+            error: error.message
         });
     }
 };
@@ -78,16 +62,7 @@ exports.listarLivros = listarLivros;
 const buscarLivro = async (req, res) => {
     try {
         const { id } = req.params;
-        const livro = await client_1.default.livro.findUnique({
-            where: {
-                id: parseInt(id)
-            }
-        });
-        if (!livro) {
-            return res.status(404).json({
-                error: 'Livro não encontrado'
-            });
-        }
+        const livro = await livroService.buscarLivroPorId(parseInt(id));
         res.json({
             message: 'Livro encontrado com sucesso',
             livro
@@ -95,8 +70,13 @@ const buscarLivro = async (req, res) => {
     }
     catch (error) {
         console.error('Erro ao buscar livro:', error);
+        if (error.message === 'Livro não encontrado') {
+            return res.status(404).json({
+                error: error.message
+            });
+        }
         res.status(500).json({
-            error: 'Erro interno do servidor ao buscar livro'
+            error: error.message
         });
     }
 };
@@ -108,36 +88,13 @@ const atualizarLivro = async (req, res) => {
     try {
         const { id } = req.params;
         const { titulo, autor, isbn, editora, ano, disponivel } = req.body;
-        // Verifica se o livro existe
-        const livroExistente = await client_1.default.livro.findUnique({
-            where: { id: parseInt(id) }
-        });
-        if (!livroExistente) {
-            return res.status(404).json({
-                error: 'Livro não encontrado'
-            });
-        }
-        // Se estiver tentando mudar o ISBN, verifica se não existe outro com mesmo ISBN
-        if (isbn && isbn !== livroExistente.isbn) {
-            const isbnExistente = await client_1.default.livro.findUnique({
-                where: { isbn }
-            });
-            if (isbnExistente) {
-                return res.status(400).json({
-                    error: 'Já existe outro livro com este ISBN'
-                });
-            }
-        }
-        const livro = await client_1.default.livro.update({
-            where: { id: parseInt(id) },
-            data: {
-                titulo,
-                autor,
-                isbn,
-                editora,
-                ano: ano ? parseInt(ano) : undefined,
-                disponivel
-            }
+        const livro = await livroService.atualizarLivro(parseInt(id), {
+            titulo,
+            autor,
+            isbn,
+            editora,
+            ano: ano ? parseInt(ano) : undefined,
+            disponivel
         });
         res.json({
             message: 'Livro atualizado com sucesso',
@@ -146,8 +103,13 @@ const atualizarLivro = async (req, res) => {
     }
     catch (error) {
         console.error('Erro ao atualizar livro:', error);
-        res.status(500).json({
-            error: 'Erro interno do servidor ao atualizar livro'
+        if (error.message === 'Livro não encontrado') {
+            return res.status(404).json({
+                error: error.message
+            });
+        }
+        res.status(400).json({
+            error: error.message
         });
     }
 };
@@ -158,38 +120,20 @@ exports.atualizarLivro = atualizarLivro;
 const deletarLivro = async (req, res) => {
     try {
         const { id } = req.params;
-        // Verifica se o livro existe
-        const livroExistente = await client_1.default.livro.findUnique({
-            where: { id: parseInt(id) }
-        });
-        if (!livroExistente) {
-            return res.status(404).json({
-                error: 'Livro não encontrado'
-            });
-        }
-        // Verifica se o livro está em algum empréstimo ativo
-        const emprestimoAtivo = await client_1.default.emprestimo.findFirst({
-            where: {
-                livroId: parseInt(id),
-                devolvido: false
-            }
-        });
-        if (emprestimoAtivo) {
-            return res.status(400).json({
-                error: 'Não é possível deletar um livro que está emprestado'
-            });
-        }
-        await client_1.default.livro.delete({
-            where: { id: parseInt(id) }
-        });
+        const resultado = await livroService.deletarLivro(parseInt(id));
         res.json({
-            message: 'Livro deletado com sucesso'
+            message: resultado.message
         });
     }
     catch (error) {
         console.error('Erro ao deletar livro:', error);
-        res.status(500).json({
-            error: 'Erro interno do servidor ao deletar livro'
+        if (error.message === 'Livro não encontrado') {
+            return res.status(404).json({
+                error: error.message
+            });
+        }
+        res.status(400).json({
+            error: error.message
         });
     }
 };
@@ -199,14 +143,7 @@ exports.deletarLivro = deletarLivro;
  */
 const buscarLivrosDisponiveis = async (req, res) => {
     try {
-        const livros = await client_1.default.livro.findMany({
-            where: {
-                disponivel: true
-            },
-            orderBy: {
-                titulo: 'asc'
-            }
-        });
+        const livros = await livroService.listarLivrosDisponiveis();
         res.json({
             message: 'Livros disponíveis recuperados com sucesso',
             count: livros.length,
@@ -216,9 +153,35 @@ const buscarLivrosDisponiveis = async (req, res) => {
     catch (error) {
         console.error('Erro ao buscar livros disponíveis:', error);
         res.status(500).json({
-            error: 'Erro interno do servidor ao buscar livros disponíveis'
+            error: error.message
         });
     }
 };
 exports.buscarLivrosDisponiveis = buscarLivrosDisponiveis;
+/**
+ * Busca livros por título
+ */
+const buscarLivrosPorTitulo = async (req, res) => {
+    try {
+        const { titulo } = req.query;
+        if (!titulo || typeof titulo !== 'string') {
+            return res.status(400).json({
+                error: 'Parâmetro "titulo" é obrigatório'
+            });
+        }
+        const livros = await livroService.buscarLivrosPorTitulo(titulo);
+        res.json({
+            message: 'Livros encontrados com sucesso',
+            count: livros.length,
+            livros
+        });
+    }
+    catch (error) {
+        console.error('Erro ao buscar livros por título:', error);
+        res.status(500).json({
+            error: error.message
+        });
+    }
+};
+exports.buscarLivrosPorTitulo = buscarLivrosPorTitulo;
 //# sourceMappingURL=livroController.js.map

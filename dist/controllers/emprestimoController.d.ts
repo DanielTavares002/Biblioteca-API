@@ -8,15 +8,15 @@ export declare const criarEmprestimo: (req: Request, res: Response) => Promise<R
  */
 export declare const listarEmprestimos: (req: Request, res: Response) => Promise<void>;
 /**
- * Lista empréstimos ativos
- */
-export declare const listarEmprestimosAtivos: (req: Request, res: Response) => Promise<void>;
-/**
  * Busca um empréstimo por ID
  */
 export declare const buscarEmprestimo: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 /**
- * Devolve um livro (marca empréstimo como devolvido)
+ * Devolve um livro
  */
 export declare const devolverLivro: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+/**
+ * Lista empréstimos ativos
+ */
+export declare const listarEmprestimosAtivos: (req: Request, res: Response) => Promise<void>;
 //# sourceMappingURL=emprestimoController.d.ts.map

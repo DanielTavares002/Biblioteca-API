@@ -23,4 +23,8 @@ export declare const deletarLivro: (req: Request, res: Response) => Promise<Resp
  * Lista livros disponíveis
  */
 export declare const buscarLivrosDisponiveis: (req: Request, res: Response) => Promise<void>;
+/**
+ * Busca livros por título
+ */
+export declare const buscarLivrosPorTitulo: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 //# sourceMappingURL=livroController.d.ts.map
