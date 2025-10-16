@@ -133,6 +133,36 @@ class EmprestimoService {
             throw new Error(`Erro ao listar empréstimos ativos: ${error.message}`);
         }
     }
+    async listarTodosEmprestimos() {
+        try {
+            const emprestimos = await prisma_1.default.emprestimo.findMany({
+                include: {
+                    usuario: {
+                        select: {
+                            id: true,
+                            nome: true,
+                            email: true
+                        }
+                    },
+                    livro: {
+                        select: {
+                            id: true,
+                            titulo: true,
+                            autor: true,
+                            isbn: true
+                        }
+                    }
+                },
+                orderBy: {
+                    dataEmprestimo: 'desc'
+                }
+            });
+            return emprestimos;
+        }
+        catch (error) {
+            throw new Error(`Erro ao listar todos os empréstimos: ${error.message}`);
+        }
+    }
     async historicoUsuario(usuarioId) {
         try {
             const emprestimos = await prisma_1.default.emprestimo.findMany({
@@ -187,6 +217,23 @@ class EmprestimoService {
         }
         catch (error) {
             throw new Error(`Erro ao buscar empréstimo: ${error.message}`);
+        }
+    }
+    async deletarEmprestimo(id) {
+        try {
+            const emprestimo = await prisma_1.default.emprestimo.findUnique({
+                where: { id }
+            });
+            if (!emprestimo) {
+                throw new Error('Empréstimo não encontrado');
+            }
+            await prisma_1.default.emprestimo.delete({
+                where: { id }
+            });
+            return { message: 'Empréstimo deletado com sucesso' };
+        }
+        catch (error) {
+            throw new Error(`Erro ao deletar empréstimo: ${error.message}`);
         }
     }
 }

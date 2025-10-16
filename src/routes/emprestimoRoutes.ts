@@ -4,47 +4,11 @@ import {
   listarEmprestimos,
   buscarEmprestimo,
   devolverLivro,
-  listarEmprestimosAtivos
+  listarEmprestimosAtivos,
+  historicoUsuario
 } from '../controllers/emprestimoController'
 
 const router = Router()
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     Emprestimo:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         livroId:
- *           type: integer
- *         usuarioId:
- *           type: integer
- *         dataEmprestimo:
- *           type: string
- *           format: date-time
- *         dataDevolucao:
- *           type: string
- *           format: date-time
- *         devolvido:
- *           type: boolean
- *         livro:
- *           $ref: '#/components/schemas/Livro'
- *         usuario:
- *           $ref: '#/components/schemas/Usuario'
- *     EmprestimoInput:
- *       type: object
- *       required:
- *         - livroId
- *         - usuarioId
- *       properties:
- *         livroId:
- *           type: integer
- *         usuarioId:
- *           type: integer
- */
 
 /**
  * @swagger
@@ -55,88 +19,56 @@ const router = Router()
 
 /**
  * @swagger
- * /api/emprestimos:
+ * /emprestimos:
  *   post:
- *     summary: Criar um novo empréstimo
+ *     summary: Cria um novo empréstimo
  *     tags: [Empréstimos]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/EmprestimoInput'
- *     responses:
- *       201:
- *         description: Empréstimo criado com sucesso
- *       400:
- *         description: Livro não disponível ou dados inválidos
  */
 router.post('/', criarEmprestimo)
 
 /**
  * @swagger
- * /api/emprestimos:
+ * /emprestimos:
  *   get:
- *     summary: Listar todos os empréstimos
+ *     summary: Lista todos os empréstimos
  *     tags: [Empréstimos]
- *     responses:
- *       200:
- *         description: Lista de empréstimos
  */
 router.get('/', listarEmprestimos)
 
 /**
  * @swagger
- * /api/emprestimos/ativos:
+ * /emprestimos/ativos:
  *   get:
- *     summary: Listar empréstimos ativos
+ *     summary: Lista empréstimos ativos
  *     tags: [Empréstimos]
- *     responses:
- *       200:
- *         description: Lista de empréstimos ativos
  */
 router.get('/ativos', listarEmprestimosAtivos)
 
 /**
  * @swagger
- * /api/emprestimos/{id}:
+ * /emprestimos/usuarios/{usuarioId}:
  *   get:
- *     summary: Buscar empréstimo por ID
+ *     summary: Histórico de empréstimos do usuário
  *     tags: [Empréstimos]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID do empréstimo
- *     responses:
- *       200:
- *         description: Empréstimo encontrado
- *       404:
- *         description: Empréstimo não encontrado
+ */
+router.get('/usuarios/:usuarioId', historicoUsuario)
+
+/**
+ * @swagger
+ * /emprestimos/{id}:
+ *   get:
+ *     summary: Busca empréstimo por ID
+ *     tags: [Empréstimos]
  */
 router.get('/:id', buscarEmprestimo)
 
 /**
  * @swagger
- * /api/emprestimos/{id}/devolver:
+ * /emprestimos/{id}/devolucao:
  *   patch:
- *     summary: Devolver um livro
+ *     summary: Registra devolução de livro
  *     tags: [Empréstimos]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID do empréstimo
- *     responses:
- *       200:
- *         description: Livro devolvido com sucesso
- *       404:
- *         description: Empréstimo não encontrado
  */
-router.patch('/:id/devolver', devolverLivro)
+router.patch('/:id/devolucao', devolverLivro)
 
 export default router

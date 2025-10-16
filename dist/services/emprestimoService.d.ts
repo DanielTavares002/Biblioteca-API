@@ -41,6 +41,28 @@ export declare class EmprestimoService {
         dataEmprestimo: Date;
         dataDevolucao: Date | null;
     })[]>;
+    listarTodosEmprestimos(): Promise<({
+        livro: {
+            id: number;
+            isbn: string;
+            titulo: string;
+            autor: string;
+        };
+        usuario: {
+            id: number;
+            email: string;
+            nome: string;
+        };
+    } & {
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        devolvido: boolean;
+        livroId: number;
+        usuarioId: number;
+        dataEmprestimo: Date;
+        dataDevolucao: Date | null;
+    })[]>;
     historicoUsuario(usuarioId: number): Promise<({
         livro: {
             isbn: string;
@@ -78,6 +100,9 @@ export declare class EmprestimoService {
         usuarioId: number;
         dataEmprestimo: Date;
         dataDevolucao: Date | null;
+    }>;
+    deletarEmprestimo(id: number): Promise<{
+        message: string;
     }>;
 }
 //# sourceMappingURL=emprestimoService.d.ts.map
