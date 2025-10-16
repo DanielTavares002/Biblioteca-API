@@ -2,16 +2,16 @@
 
 pkgs.mkShell {
   buildInputs = with pkgs; [
-    nodejs_20
-    firebase-tools
-    openjdk11  # Para Firebase Emulators
-    docker-client
+    nodejs
+    openssl_1_1
+    prisma-engines
   ];
-  
+
   shellHook = ''
-    echo "🚀 Ambiente de desenvolvimento carregado!"
-    echo "✅ Node.js $(node --version)"
-    echo "✅ Java $(java -version 2>&1 | head -1)"
-    echo "✅ Firebase $(firebase --version 2>/dev/null || echo 'disponível')"
+    export PRISMA_QUERY_ENGINE_LIBRARY="${pkgs.prisma-engines}/lib/libquery_engine.node"
+    export PRISMA_SCHEMA_ENGINE_BINARY="${pkgs.prisma-engines}/bin/schema-engine"
+    export LD_LIBRARY_PATH="${pkgs.openssl_1_1.out}/lib:$LD_LIBRARY_PATH"
+    echo "✅ Ambiente configurado com OpenSSL 1.1 para Prisma"
+    echo "🚀 Execute: npm run dev"
   '';
 }

@@ -1,62 +1,43 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import swaggerUi from 'swagger-ui-express';
+import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
+import { setupSwagger } from './docs/swagger'
+import livroRoutes from './routes/livroRoutes'
+import usuarioRoutes from './routes/usuarioRoutes'
+import emprestimoRoutes from './routes/emprestimoRoutes'
 
-import { swaggerSpec } from './docs/swagger';
-import livroRoutes from './routes/livroRoutes';
-import usuarioRoutes from './routes/usuarioRoutes';
-import emprestimoRoutes from './routes/emprestimoRoutes';
+const app = express()
+const PORT = parseInt(process.env.PORT || '3000')
+const HOST = '0.0.0.0'
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+// Middlewares
+app.use(helmet())
+app.use(cors())
+app.use(express.json())
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(morgan('combined'));
-app.use(express.json());
+// Swagger Documentation
+setupSwagger(app)
 
-// Health Check
+// Routes
+app.use('/api/livros', livroRoutes)
+app.use('/api/usuarios', usuarioRoutes)
+app.use('/api/emprestimos', emprestimoRoutes)
+
+// Health check
 app.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API está funcionando corretamente',
-    timestamp: new Date().toISOString(),
-  });
-});
+  res.status(200).json({ status: 'OK', message: 'API está funcionando!' })
+})
 
-// Rotas
-app.use('/api/livros', livroRoutes);
-app.use('/api/usuarios', usuarioRoutes);
-app.use('/api/emprestimos', emprestimoRoutes);
-
-// Documentação Swagger
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// Rota não encontrada
+// 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Rota não encontrada',
-  });
-});
+  res.status(404).json({ message: 'Rota não encontrada' })
+})
 
-// Middleware de erro global
-app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Erro não tratado:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Erro interno do servidor',
-    error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
-  });
-});
+// Servidor corrigido
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Servidor rodando na porta ${PORT}`)
+  console.log(`📚 Documentação disponível em: http://localhost:${PORT}/api-docs`)
+  console.log(`🌐 Acessível também em: http://${HOST}:${PORT}/api-docs`)
+})
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📚 API de Biblioteca disponível em: http://localhost:${PORT}`);
-  console.log(`📖 Documentação disponível em: http://localhost:${PORT}/api/docs`);
-});
-
-export default app;
+export default app

@@ -1,199 +1,226 @@
-import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
-import { EmprestimoSchema } from '../types';
+import { Request, Response } from 'express'
+import prisma from '../prisma/client'
 
-export const emprestimoController = {
-  async realizarEmprestimo(req: Request, res: Response) {
-    try {
-      const dadosValidados = EmprestimoSchema.parse(req.body);
+/**
+ * Cria um novo empréstimo
+ */
+export const criarEmprestimo = async (req: Request, res: Response) => {
+  try {
+    const { livroId, usuarioId } = req.body
 
-      // Verificar se livro existe usando Prisma
-      const livro = await prisma.livro.findUnique({
-        where: { id: dadosValidados.livroId },
-      });
-
-      if (!livro) {
-        return res.status(404).json({
-          success: false,
-          message: 'Livro não encontrado',
-        });
-      }
-
-      if (livro.status !== 'DISPONIVEL') {
-        return res.status(400).json({
-          success: false,
-          message: `Livro não está disponível. Status atual: ${livro.status}`,
-        });
-      }
-
-      // Verificar se usuário existe usando Prisma
-      const usuario = await prisma.usuario.findUnique({
-        where: { id: dadosValidados.usuarioId },
-      });
-
-      if (!usuario) {
-        return res.status(404).json({
-          success: false,
-          message: 'Usuário não encontrado',
-        });
-      }
-
-      // Verificar se usuário tem empréstimos em atraso
-      const emprestimosAtrasados = await prisma.emprestimo.count({
-        where: {
-          usuarioId: dadosValidados.usuarioId,
-          status: 'ATRASADO',
-        },
-      });
-
-      if (emprestimosAtrasados > 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Usuário possui empréstimos em atraso',
-        });
-      }
-
-      // Realizar empréstimo em transação
-      const resultado = await prisma.$transaction(async (tx) => {
-        // Criar empréstimo
-        const emprestimo = await tx.emprestimo.create({
-          data: {
-            livroId: dadosValidados.livroId,
-            usuarioId: dadosValidados.usuarioId,
-            dataDevolucaoPrevista: new Date(dadosValidados.dataDevolucaoPrevista),
-          },
-        });
-
-        // Atualizar status do livro
-        await tx.livro.update({
-          where: { id: dadosValidados.livroId },
-          data: { status: 'EMPRESTADO' },
-        });
-
-        return emprestimo;
-      });
-
-      const emprestimoCompleto = await prisma.emprestimo.findUnique({
-        where: { id: resultado.id },
-        include: {
-          livro: true,
-          usuario: true,
-        },
-      });
-
-      res.status(201).json({
-        success: true,
-        message: 'Empréstimo realizado com sucesso',
-        data: emprestimoCompleto,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Erro ao realizar empréstimo',
-        error: error instanceof Error ? error.message : 'Erro desconhecido',
-      });
+    // Validação básica
+    if (!livroId || !usuarioId) {
+      return res.status(400).json({ 
+        error: 'Todos os campos são obrigatórios: livroId, usuarioId' 
+      })
     }
-  },
 
-  async devolverLivro(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
+    // Verifica se o livro existe e está disponível
+    const livro = await prisma.livro.findUnique({
+      where: { id: parseInt(livroId) }
+    })
 
-      const emprestimo = await prisma.emprestimo.findUnique({
-        where: { id: Number(id) },
-        include: { livro: true },
-      });
-
-      if (!emprestimo) {
-        return res.status(404).json({
-          success: false,
-          message: 'Empréstimo não encontrado',
-        });
-      }
-
-      if (emprestimo.status !== 'ATIVO') {
-        return res.status(400).json({
-          success: false,
-          message: `Empréstimo já está ${emprestimo.status.toLowerCase()}`,
-        });
-      }
-
-      const dataDevolucao = new Date();
-      const dataPrevista = new Date(emprestimo.dataDevolucaoPrevista);
-      let multa = 0;
-
-      // Calcular multa se houver atraso
-      if (dataDevolucao > dataPrevista) {
-        const diasAtraso = Math.ceil(
-          (dataDevolucao.getTime() - dataPrevista.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        multa = diasAtraso * 2.0; // R$ 2,00 por dia de atraso
-      }
-
-      // Realizar devolução em transação
-      const resultado = await prisma.$transaction(async (tx) => {
-        // Atualizar empréstimo
-        const emprestimoAtualizado = await tx.emprestimo.update({
-          where: { id: Number(id) },
-          data: {
-            status: 'DEVOLVIDO',
-            dataDevolucaoReal: dataDevolucao,
-            multa,
-          },
-        });
-
-        // Atualizar status do livro
-        await tx.livro.update({
-          where: { id: emprestimo.livroId },
-          data: { status: 'DISPONIVEL' },
-        });
-
-        return emprestimoAtualizado;
-      });
-
-      res.json({
-        success: true,
-        message: multa > 0 
-          ? `Livro devolvido com atraso. Multa aplicada: R$ ${multa.toFixed(2)}`
-          : 'Livro devolvido com sucesso',
-        data: resultado,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Erro ao devolver livro',
-        error: error instanceof Error ? error.message : 'Erro desconhecido',
-      });
+    if (!livro) {
+      return res.status(404).json({ 
+        error: 'Livro não encontrado' 
+      })
     }
-  },
 
-  async listarEmprestimos(req: Request, res: Response) {
-    try {
-      const { status, usuarioId } = req.query;
-
-      const where: any = {};
-      if (status) where.status = status;
-      if (usuarioId) where.usuarioId = Number(usuarioId);
-
-      const emprestimos = await prisma.emprestimo.findMany({
-        where,
-        include: {
-          livro: true,
-          usuario: true,
-        },
-        orderBy: { dataEmprestimo: 'desc' },
-      });
-
-      res.json({
-        success: true,
-        data: emprestimos,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Erro ao listar empréstimos',
-        error: error instanceof Error ? error.message : 'Erro desconhecido',
-      });
+    if (!livro.disponivel) {
+      return res.status(400).json({ 
+        error: 'Livro não está disponível para empréstimo' 
+      })
     }
-  },
-};
+
+    // Verifica se o usuário existe
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: parseInt(usuarioId) }
+    })
+
+    if (!usuario) {
+      return res.status(404).json({ 
+        error: 'Usuário não encontrado' 
+      })
+    }
+
+    // Cria o empréstimo
+    const emprestimo = await prisma.emprestimo.create({
+      data: {
+        livroId: parseInt(livroId),
+        usuarioId: parseInt(usuarioId)
+      },
+      include: {
+        livro: true,
+        usuario: true
+      }
+    })
+
+    // Atualiza o livro para indisponível
+    await prisma.livro.update({
+      where: { id: parseInt(livroId) },
+      data: { disponivel: false }
+    })
+
+    res.status(201).json({
+      message: 'Empréstimo realizado com sucesso',
+      emprestimo
+    })
+  } catch (error) {
+    console.error('Erro ao criar empréstimo:', error)
+    res.status(500).json({ 
+      error: 'Erro interno do servidor ao criar empréstimo' 
+    })
+  }
+}
+
+/**
+ * Lista todos os empréstimos
+ */
+export const listarEmprestimos = async (req: Request, res: Response) => {
+  try {
+    const emprestimos = await prisma.emprestimo.findMany({
+      include: {
+        livro: true,
+        usuario: true
+      },
+      orderBy: {
+        dataEmprestimo: 'desc'
+      }
+    })
+
+    res.json({
+      message: 'Empréstimos recuperados com sucesso',
+      count: emprestimos.length,
+      emprestimos
+    })
+  } catch (error) {
+    console.error('Erro ao listar empréstimos:', error)
+    res.status(500).json({ 
+      error: 'Erro interno do servidor ao listar empréstimos' 
+    })
+  }
+}
+
+/**
+ * Lista empréstimos ativos
+ */
+export const listarEmprestimosAtivos = async (req: Request, res: Response) => {
+  try {
+    const emprestimos = await prisma.emprestimo.findMany({
+      where: {
+        devolvido: false
+      },
+      include: {
+        livro: true,
+        usuario: true
+      },
+      orderBy: {
+        dataEmprestimo: 'desc'
+      }
+    })
+
+    res.json({
+      message: 'Empréstimos ativos recuperados com sucesso',
+      count: emprestimos.length,
+      emprestimos
+    })
+  } catch (error) {
+    console.error('Erro ao listar empréstimos ativos:', error)
+    res.status(500).json({ 
+      error: 'Erro interno do servidor ao listar empréstimos ativos' 
+    })
+  }
+}
+
+/**
+ * Busca um empréstimo por ID
+ */
+export const buscarEmprestimo = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+
+    const emprestimo = await prisma.emprestimo.findUnique({
+      where: { 
+        id: parseInt(id) 
+      },
+      include: {
+        livro: true,
+        usuario: true
+      }
+    })
+
+    if (!emprestimo) {
+      return res.status(404).json({ 
+        error: 'Empréstimo não encontrado' 
+      })
+    }
+
+    res.json({
+      message: 'Empréstimo encontrado com sucesso',
+      emprestimo
+    })
+  } catch (error) {
+    console.error('Erro ao buscar empréstimo:', error)
+    res.status(500).json({ 
+      error: 'Erro interno do servidor ao buscar empréstimo' 
+    })
+  }
+}
+
+/**
+ * Devolve um livro (marca empréstimo como devolvido)
+ */
+export const devolverLivro = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+
+    // Verifica se o empréstimo existe
+    const emprestimo = await prisma.emprestimo.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        livro: true
+      }
+    })
+
+    if (!emprestimo) {
+      return res.status(404).json({ 
+        error: 'Empréstimo não encontrado' 
+      })
+    }
+
+    if (emprestimo.devolvido) {
+      return res.status(400).json({ 
+        error: 'Este livro já foi devolvido' 
+      })
+    }
+
+    // Atualiza o empréstimo
+    const emprestimoAtualizado = await prisma.emprestimo.update({
+      where: { id: parseInt(id) },
+      data: {
+        devolvido: true,
+        dataDevolucao: new Date()
+      },
+      include: {
+        livro: true,
+        usuario: true
+      }
+    })
+
+    // Atualiza o livro para disponível
+    await prisma.livro.update({
+      where: { id: emprestimo.livroId },
+      data: { disponivel: true }
+    })
+
+    res.json({
+      message: 'Livro devolvido com sucesso',
+      emprestimo: emprestimoAtualizado
+    })
+  } catch (error) {
+    console.error('Erro ao devolver livro:', error)
+    res.status(500).json({ 
+      error: 'Erro interno do servidor ao devolver livro' 
+    })
+  }
+}
