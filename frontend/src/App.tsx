@@ -39,6 +39,8 @@ function App() {
 
   // Estados para o modal de cadastro
   const [modalAberto, setModalAberto] = useState(false);
+  const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
+  const [livroEditando, setLivroEditando] = useState<Livro | null>(null);
   const [formData, setFormData] = useState({
     titulo: '',
     autor: '',
@@ -98,13 +100,46 @@ function App() {
     }
   };
 
-  // Abrir/fechar modal
+  // Abrir/fechar modal de cadastro
   const abrirModal = () => {
     setModalAberto(true);
   };
 
   const fecharModal = () => {
     setModalAberto(false);
+    setFormData({
+      titulo: '',
+      autor: '',
+      isbn: '',
+      editora: '',
+      ano: ''
+    });
+  };
+
+  // Abrir/fechar modal de edição
+  const abrirModalEdicao = async (id: number) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/livros/${id}`);
+      const livro = response.data.livro;
+
+      setLivroEditando(livro);
+      setFormData({
+        titulo: livro.titulo,
+        autor: livro.autor,
+        isbn: livro.isbn,
+        editora: livro.editora,
+        ano: livro.ano.toString()
+      });
+      setModalEdicaoAberto(true);
+    } catch (error) {
+      console.error('Erro ao carregar livro para edição:', error);
+      alert('Erro ao carregar dados do livro');
+    }
+  };
+
+  const fecharModalEdicao = () => {
+    setModalEdicaoAberto(false);
+    setLivroEditando(null);
     setFormData({
       titulo: '',
       autor: '',
@@ -123,7 +158,7 @@ function App() {
     }));
   };
 
-  // Submeter formulário
+  // Submeter formulário de cadastro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEnviando(true);
@@ -140,6 +175,30 @@ function App() {
     } catch (error: any) {
       console.error('Erro ao cadastrar:', error);
       alert(error.response?.data?.error || 'Erro ao cadastrar livro');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  // Submeter formulário de edição
+  const handleEditar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!livroEditando) return;
+
+    setEnviando(true);
+
+    try {
+      await axios.put(`http://localhost:3000/livros/${livroEditando.id}`, {
+        ...formData,
+        ano: parseInt(formData.ano)
+      });
+
+      carregarLivros();
+      fecharModalEdicao();
+      alert('Livro atualizado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao editar:', error);
+      alert(error.response?.data?.error || 'Erro ao editar livro');
     } finally {
       setEnviando(false);
     }
@@ -294,7 +353,7 @@ function App() {
                         variant="outlined"
                         color="warning"
                         startIcon={<Edit />}
-                        onClick={() => alert(`Editar ${livro.id} - próximo!`)}
+                        onClick={() => abrirModalEdicao(livro.id)}
                         fullWidth
                       >
                         Editar
@@ -395,6 +454,88 @@ function App() {
               startIcon={enviando ? <CircularProgress size={16} /> : null}
             >
               {enviando ? 'Cadastrando...' : 'Cadastrar Livro'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* Modal de Edição */}
+      <Dialog
+        open={modalEdicaoAberto}
+        onClose={fecharModalEdicao}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Typography variant="h5" component="h2">
+            Editar Livro
+          </Typography>
+        </DialogTitle>
+
+        <form onSubmit={handleEditar}>
+          <DialogContent>
+            <Box className="space-y-3">
+              <TextField
+                name="titulo"
+                label="Título"
+                value={formData.titulo}
+                onChange={handleInputChange}
+                required
+                fullWidth
+                margin="dense"
+              />
+              <TextField
+                name="autor"
+                label="Autor"
+                value={formData.autor}
+                onChange={handleInputChange}
+                required
+                fullWidth
+                margin="dense"
+              />
+              <TextField
+                name="isbn"
+                label="ISBN"
+                value={formData.isbn}
+                onChange={handleInputChange}
+                required
+                fullWidth
+                margin="dense"
+              />
+              <TextField
+                name="editora"
+                label="Editora"
+                value={formData.editora}
+                onChange={handleInputChange}
+                required
+                fullWidth
+                margin="dense"
+              />
+              <TextField
+                name="ano"
+                label="Ano de Publicação"
+                type="number"
+                value={formData.ano}
+                onChange={handleInputChange}
+                required
+                fullWidth
+                margin="dense"
+                inputProps={{ min: 1000, max: 2025 }}
+              />
+            </Box>
+          </DialogContent>
+
+          <DialogActions sx={{ p: 3, gap: 1 }}>
+            <Button onClick={fecharModalEdicao} disabled={enviando}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={enviando}
+              startIcon={enviando ? <CircularProgress size={16} /> : null}
+            >
+              {enviando ? 'Atualizando...' : 'Atualizar Livro'}
             </Button>
           </DialogActions>
         </form>
