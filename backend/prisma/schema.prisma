@@ -4,8 +4,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = "postgresql://admin:senha123@localhost:5432/biblioteca"
 }
 
 model Livro {
@@ -31,6 +31,15 @@ model Usuario {
   updatedAt DateTime @updatedAt
 
   emprestimos Emprestimo[]
+}
+
+model Secretario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senha     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Emprestimo {

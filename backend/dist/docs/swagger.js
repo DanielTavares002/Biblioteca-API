@@ -16,15 +16,18 @@ const options = {
         },
         servers: [
             {
-                url: 'https://3000-firebase-bibilioteca-api-1760553480549.cluster-thle3dudhffpwss7zs5hxaeu2o.cloudworkstations.dev',
-                description: 'Servidor Cloud Workstations',
-            },
-            {
                 url: 'http://localhost:3000',
                 description: 'Servidor local',
-            },
+            }
         ],
         components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT'
+                }
+            },
             schemas: {
                 Livro: {
                     type: "object",
@@ -64,6 +67,26 @@ const options = {
                         updatedAt: { type: 'string', format: 'date-time' }
                     }
                 },
+                Secretario: {
+                    type: "object",
+                    properties: {
+                        id: { type: "integer", example: 1 },
+                        nome: { type: "string", example: "Admin" },
+                        email: { type: "string", example: "admin@biblioteca.com" },
+                        createdAt: { type: "string", format: "date-time", example: "2024-01-15T10:00:00.000Z" },
+                        updatedAt: { type: "string", format: "date-time", example: "2024-01-15T10:00:00.000Z" }
+                    }
+                },
+                LoginResponse: {
+                    type: "object",
+                    properties: {
+                        message: { type: "string", example: "Login realizado com sucesso" },
+                        token: { type: "string", example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+                        secretario: {
+                            $ref: '#/components/schemas/Secretario'
+                        }
+                    }
+                },
                 Error: {
                     type: 'object',
                     properties: {
@@ -73,7 +96,7 @@ const options = {
             }
         }
     },
-    apis: ['./src/routes/*.ts'],
+    apis: ['./src/routes/*.ts', './src/controllers/*.ts'],
 };
 const specs = (0, swagger_jsdoc_1.default)(options);
 const setupSwagger = (app) => {

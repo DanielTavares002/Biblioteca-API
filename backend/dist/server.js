@@ -10,6 +10,7 @@ const swagger_1 = require("./docs/swagger");
 const livroRoutes_1 = __importDefault(require("./routes/livroRoutes"));
 const usuarioRoutes_1 = __importDefault(require("./routes/usuarioRoutes"));
 const emprestimoRoutes_1 = __importDefault(require("./routes/emprestimoRoutes"));
+const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const app = (0, express_1.default)();
 const PORT = parseInt(process.env.PORT || '3000');
 // Configuração CORS
@@ -30,6 +31,7 @@ app.use(express_1.default.json());
 // Swagger Documentation
 (0, swagger_1.setupSwagger)(app);
 // Rotas
+app.use('/auth', authRoutes_1.default);
 app.use('/livros', livroRoutes_1.default);
 app.use('/usuarios', usuarioRoutes_1.default);
 app.use('/emprestimos', emprestimoRoutes_1.default);
