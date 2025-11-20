@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import axios from 'axios';
 import {
   Container,
@@ -19,6 +20,12 @@ import {
   Alert
 } from '@mui/material';
 import { Add, Search, Refresh, Edit, Delete } from '@mui/icons-material';
+import { UsuarioPage } from './pages/UsuarioPage';
+import { EmprestimosPage } from './pages/EmprestimosPage';
+import { AuthProvider } from './context/AuthContext';
+import { LoginPage } from './pages/LoginPage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+
 
 // Interface para o Livro
 interface Livro {
@@ -31,13 +38,11 @@ interface Livro {
   disponivel: boolean;
 }
 
-function App() {
+function LivrosPage() {
   const [livros, setLivros] = useState<Livro[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Estados para o modal de cadastro
   const [modalAberto, setModalAberto] = useState(false);
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
   const [livroEditando, setLivroEditando] = useState<Livro | null>(null);
@@ -213,169 +218,151 @@ function App() {
   }
 
   return (
-    <Box className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Box 
-        className="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg"
-        sx={{ py: 4 }}
-      >
-        <Container maxWidth="lg">
-          <Typography variant="h3" component="h1" align="center" fontWeight="bold">
-            📚 Biblioteca Digital
-          </Typography>
-          <Typography variant="h6" align="center" className="text-blue-100 mt-2">
-            Sistema de Gerenciamento de Livros
-          </Typography>
-        </Container>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Barra de Ações */}
+      <Box className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-8">
+        <Box className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+          <TextField
+            placeholder="Buscar por título..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && buscarLivros()}
+            size="small"
+            sx={{ width: { xs: '100%', sm: 256 } }}
+          />
+          <Box className="flex gap-2">
+            <Button
+              variant="contained"
+              onClick={buscarLivros}
+              startIcon={<Search />}
+              className="bg-gray-600 hover:bg-gray-700"
+            >
+              Buscar
+            </Button>
+            <Button
+              variant="contained"
+              onClick={carregarLivros}
+              startIcon={<Refresh />}
+              className="bg-gray-500 hover:bg-gray-600"
+            >
+              Limpar
+            </Button>
+          </Box>
+        </Box>
+        <Button
+          variant="contained"
+          onClick={abrirModal}
+          startIcon={<Add />}
+          className="bg-blue-600 hover:bg-blue-700 font-semibold"
+        >
+          Novo Livro
+        </Button>
       </Box>
 
-      {/* Main Content */}
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {/* Barra de Ações */}
-        <Box className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-8">
-          <Box className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-            <TextField
-              placeholder="Buscar por título..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && buscarLivros()}
-              size="small"
-              sx={{ width: { xs: '100%', sm: 256 } }}
-            />
-            <Box className="flex gap-2">
-              <Button
-                variant="contained"
-                onClick={buscarLivros}
-                startIcon={<Search />}
-                className="bg-gray-600 hover:bg-gray-700"
-              >
-                Buscar
-              </Button>
-              <Button
-                variant="contained"
-                onClick={carregarLivros}
-                startIcon={<Refresh />}
-                className="bg-gray-500 hover:bg-gray-600"
-              >
-                Limpar
-              </Button>
+      {/* Alert de Erro */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Estatísticas */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6}>
+          <Card>
+            <CardContent className="text-center">
+              <Typography color="textSecondary" gutterBottom>
+                Total de Livros
+              </Typography>
+              <Typography variant="h4" component="div">
+                {livros.length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Card>
+            <CardContent className="text-center">
+              <Typography color="textSecondary" gutterBottom>
+                Disponíveis
+              </Typography>
+              <Typography variant="h4" component="div">
+                {livros.filter(l => l.disponivel).length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Grid de Livros */}
+      <Grid container spacing={3}>
+        {livros.length === 0 ? (
+          <Grid item xs={12}>
+            <Box className="text-center py-12">
+              <Typography variant="h6" color="textSecondary">
+                Nenhum livro encontrado
+              </Typography>
             </Box>
-          </Box>
-          <Button
-            variant="contained"
-            onClick={abrirModal}
-            startIcon={<Add />}
-            className="bg-blue-600 hover:bg-blue-700 font-semibold"
-          >
-            Novo Livro
-          </Button>
-        </Box>
-
-        {/* Alert de Erro */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        {/* Estatísticas */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6}>
-            <Card>
-              <CardContent className="text-center">
-                <Typography color="textSecondary" gutterBottom>
-                  Total de Livros
-                </Typography>
-                <Typography variant="h4" component="div">
-                  {livros.length}
-                </Typography>
-              </CardContent>
-            </Card>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <Card>
-              <CardContent className="text-center">
-                <Typography color="textSecondary" gutterBottom>
-                  Disponíveis
-                </Typography>
-                <Typography variant="h4" component="div">
-                  {livros.filter(l => l.disponivel).length}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        ) : (
+          livros.map(livro => (
+            <Grid item xs={12} sm={6} md={4} key={livro.id}>
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardContent>
+                  <Box className="flex justify-between items-start mb-3">
+                    <Typography variant="h6" component="h3" className="pr-2">
+                      {livro.titulo}
+                    </Typography>
+                    <Chip
+                      label={livro.disponivel ? 'Disponível' : 'Indisponível'}
+                      color={livro.disponivel ? 'success' : 'error'}
+                      size="small"
+                    />
+                  </Box>
 
-        {/* Grid de Livros */}
-        <Grid container spacing={3}>
-          {livros.length === 0 ? (
-            <Grid item xs={12}>
-              <Box className="text-center py-12">
-                <Typography variant="h6" color="textSecondary">
-                  Nenhum livro encontrado
-                </Typography>
-              </Box>
+                  <Box className="space-y-1 mb-3">
+                    <Typography variant="body2" color="textSecondary">
+                      <strong>Autor:</strong> {livro.autor}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      <strong>Editora:</strong> {livro.editora}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      <strong>Ano:</strong> {livro.ano}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      <strong>ISBN:</strong> {livro.isbn}
+                    </Typography>
+                  </Box>
+
+                  <CardActions className="flex gap-2 p-0">
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="warning"
+                      startIcon={<Edit />}
+                      onClick={() => abrirModalEdicao(livro.id)}
+                      fullWidth
+                    >
+                      Editar
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      startIcon={<Delete />}
+                      onClick={() => deletarLivro(livro.id)}
+                      fullWidth
+                    >
+                      Excluir
+                    </Button>
+                  </CardActions>
+                </CardContent>
+              </Card>
             </Grid>
-          ) : (
-            livros.map(livro => (
-              <Grid item xs={12} sm={6} md={4} key={livro.id}>
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent>
-                    <Box className="flex justify-between items-start mb-3">
-                      <Typography variant="h6" component="h3" className="pr-2">
-                        {livro.titulo}
-                      </Typography>
-                      <Chip
-                        label={livro.disponivel ? 'Disponível' : 'Indisponível'}
-                        color={livro.disponivel ? 'success' : 'error'}
-                        size="small"
-                      />
-                    </Box>
-
-                    <Box className="space-y-1 mb-3">
-                      <Typography variant="body2" color="textSecondary">
-                        <strong>Autor:</strong> {livro.autor}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        <strong>Editora:</strong> {livro.editora}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        <strong>Ano:</strong> {livro.ano}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        <strong>ISBN:</strong> {livro.isbn}
-                      </Typography>
-                    </Box>
-
-                    <CardActions className="flex gap-2 p-0">
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="warning"
-                        startIcon={<Edit />}
-                        onClick={() => abrirModalEdicao(livro.id)}
-                        fullWidth
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        startIcon={<Delete />}
-                        onClick={() => deletarLivro(livro.id)}
-                        fullWidth
-                      >
-                        Excluir
-                      </Button>
-                    </CardActions>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))
-          )}
-        </Grid>
-      </Container>
+          ))
+        )}
+      </Grid>
 
       {/* Modal de Cadastro */}
       <Dialog 
@@ -540,7 +527,72 @@ function App() {
           </DialogActions>
         </form>
       </Dialog>
-    </Box>
+    </Container>
+  );
+
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Box className="min-h-screen bg-gray-50">
+          {/* Header com Navegação */}
+          <Box 
+            className="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg"
+            sx={{ py: 4 }}
+          >
+            <Container maxWidth="lg">
+              <Box className="flex justify-between items-center mb-4">
+                <Typography variant="h3" component="h1" fontWeight="bold">
+                  📚 Biblioteca Digital
+                </Typography>
+                <Box className="flex gap-4">
+                  <Link 
+                    to="/" 
+                    className="text-white hover:text-blue-200 font-medium text-lg"
+                  >
+                    Livros
+                  </Link>
+                  <Link 
+                    to="/usuarios" 
+                    className="text-white hover:text-blue-200 font-medium text-lg"
+                  >
+                    Usuários
+                  </Link>
+                  <Link to="/emprestimos" className="text-white hover:text-blue-200 font-medium text-lg">
+                    Empréstimos
+                  </Link>
+                </Box>
+              </Box>
+              <Typography variant="h6" className="text-blue-100">
+                Sistema de Gerenciamento de Livros
+              </Typography>
+            </Container>
+          </Box>
+
+          {/* Rotas */}
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <LivrosPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/usuarios" element={
+              <ProtectedRoute>
+                <UsuarioPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/emprestimos" element={
+              <ProtectedRoute>
+                <EmprestimosPage />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </Box>
+      </Router>
+    </AuthProvider>
   );
 }
 

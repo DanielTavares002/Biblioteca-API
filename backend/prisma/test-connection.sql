@@ -1,0 +1,1 @@
+SELECT 'Conexão OK' as status;
