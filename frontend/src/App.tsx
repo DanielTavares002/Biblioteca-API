@@ -25,7 +25,7 @@ import { EmprestimosPage } from './pages/EmprestimosPage';
 import { AuthProvider } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-
+import { useAuth } from './hooks/useAuth';
 
 // Interface para o Livro
 interface Livro {
@@ -529,48 +529,75 @@ function LivrosPage() {
       </Dialog>
     </Container>
   );
-
 }
 
+// COMPONENTE HEADER SEPARADO
+function Header() {
+  const { secretario, logout, isAuthenticated } = useAuth();
+
+  return (
+    <Box 
+      className="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg"
+      sx={{ py: 4 }}
+    >
+      <Container maxWidth="lg">
+        <Box className="flex justify-between items-center mb-4">
+          <Typography variant="h3" component="h1" fontWeight="bold">
+            📚 Biblioteca Digital
+          </Typography>
+
+          <Box className="flex items-center gap-4">
+            {isAuthenticated && secretario && (
+              <>
+                <Link 
+                  to="/" 
+                  className="text-white hover:text-blue-200 font-medium text-lg"
+                >
+                  Livros
+                </Link>
+                <Link 
+                  to="/usuarios" 
+                  className="text-white hover:text-blue-200 font-medium text-lg"
+                >
+                  Usuários
+                </Link>
+                <Link to="/emprestimos" className="text-white hover:text-blue-200 font-medium text-lg">
+                  Empréstimos
+                </Link>
+                <Box className="flex items-center gap-2">
+                  <Typography variant="body2" className="text-blue-100">
+                    Olá, {secretario.nome}
+                  </Typography>
+                  <Button 
+                    variant="outlined" 
+                    color="inherit" 
+                    size="small"
+                    onClick={logout}
+                    className="border-white text-white hover:bg-white hover:text-blue-600"
+                  >
+                    Sair
+                  </Button>
+                </Box>
+              </>
+            )}
+          </Box>
+        </Box>
+        <Typography variant="h6" className="text-blue-100">
+          Sistema de Gerenciamento de Livros
+        </Typography>
+      </Container>
+    </Box>
+  );
+}
+
+// COMPONENTE APP PRINCIPAL
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Box className="min-h-screen bg-gray-50">
-          {/* Header com Navegação */}
-          <Box 
-            className="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg"
-            sx={{ py: 4 }}
-          >
-            <Container maxWidth="lg">
-              <Box className="flex justify-between items-center mb-4">
-                <Typography variant="h3" component="h1" fontWeight="bold">
-                  📚 Biblioteca Digital
-                </Typography>
-                <Box className="flex gap-4">
-                  <Link 
-                    to="/" 
-                    className="text-white hover:text-blue-200 font-medium text-lg"
-                  >
-                    Livros
-                  </Link>
-                  <Link 
-                    to="/usuarios" 
-                    className="text-white hover:text-blue-200 font-medium text-lg"
-                  >
-                    Usuários
-                  </Link>
-                  <Link to="/emprestimos" className="text-white hover:text-blue-200 font-medium text-lg">
-                    Empréstimos
-                  </Link>
-                </Box>
-              </Box>
-              <Typography variant="h6" className="text-blue-100">
-                Sistema de Gerenciamento de Livros
-              </Typography>
-            </Container>
-          </Box>
-
+          <Header />
+          
           {/* Rotas */}
           <Routes>
             <Route path="/login" element={<LoginPage />} />

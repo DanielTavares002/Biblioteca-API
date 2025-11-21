@@ -13,14 +13,6 @@ interface AuthContextData {
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth deve ser usado dentro de um AuthProvider');
-    }
-    return context;
-};
-
 interface AuthProviderProps {
     children: ReactNode;
 }
@@ -54,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const login = async (loginData: LoginData) => {
         try {
-            console.log('Tentando login com:' loginData);
+            console.log('Tentando login com:', loginData);
             const response = await authService.login(loginData);
             console.log('Resposta do login', response);
 
@@ -93,3 +85,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         </AuthContext.Provider>
     );
 };
+
+export { AuthContext };
