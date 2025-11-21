@@ -8,7 +8,7 @@ import {
   Typography,
   Paper
 } from '@mui/material';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 export const LoginForm: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -45,9 +45,9 @@ export const LoginForm: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
-                <Alert severity="error" className="mb-4">
-                    {error}
-                </Alert>
+                    <Alert severity="error" className="mb-4">
+                        {error}
+                    </Alert>
                 )}
 
                 <TextField
