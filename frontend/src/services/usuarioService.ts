@@ -25,5 +25,10 @@ export const usuarioService = {
     async delete(id: number): Promise<{ message: string }> {
         const response = await api.delete(`/usuarios/${id}`);
         return response.data;
+    },
+
+    async search(nome: string): Promise<UsuarioResponse> {
+        const response = await api.get(`/usuarios/buscar?nome=${nome}`);
+        return response.data;
     }
 };

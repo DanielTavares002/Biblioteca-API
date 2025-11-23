@@ -29,7 +29,8 @@ export const UsuarioForm: React.FC<UsuarioFormProps> = ({
     const [formData, setFormData] = useState({
         nome: '',
         email: '',
-        telefone: ''
+        telefone: '',
+        endereco: ''
     });
     const [errors, setErrors] = useState<{ [key: string]: string}>({});
 
@@ -38,13 +39,15 @@ export const UsuarioForm: React.FC<UsuarioFormProps> = ({
             setFormData({
                 nome: usuario.nome,
                 email: usuario.email,
-                telefone: usuario.telefone
+                telefone: usuario.telefone,
+                endereco: usuario.endereco || ''
             });
         } else {
             setFormData({
                 nome: '',
                 email: '',
-                telefone: ''
+                telefone: '',
+                endereco: ''
             });
         }
         setErrors({});
@@ -65,6 +68,10 @@ export const UsuarioForm: React.FC<UsuarioFormProps> = ({
 
         if (!formData.telefone.trim()) {
             newErrors.telefone = 'Telefone é obrigatório';
+        }
+
+        if (!formData.endereco.trim()) {
+            newErrors.endereco = 'Endereço é obrigatório';
         }
 
         setErrors(newErrors);
@@ -134,6 +141,18 @@ export const UsuarioForm: React.FC<UsuarioFormProps> = ({
                             onChange={handleChange('telefone')}
                             error={!!errors.telefone}
                             helperText={errors.telefone}
+                            disabled={loading}
+                        />
+
+                        <TextField
+                            fullWidth
+                            label="Endereço"
+                            multiline
+                            rows={2}
+                            value={formData.endereco}
+                            onChange={handleChange('endereco')}
+                            error={!!errors.endereco}
+                            helperText={errors.endereco}
                             disabled={loading}
                         />
                     </Box>

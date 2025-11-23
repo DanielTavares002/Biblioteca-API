@@ -6,6 +6,7 @@ export declare class UsuarioService {
         email: string;
         nome: string;
         telefone: string;
+        endereco: string | null;
     }>;
     listarUsuarios(pagina?: number, limite?: number): Promise<{
         usuarios: {
@@ -15,6 +16,7 @@ export declare class UsuarioService {
             email: string;
             nome: string;
             telefone: string;
+            endereco: string | null;
         }[];
         paginacao: {
             pagina: number;
@@ -53,6 +55,7 @@ export declare class UsuarioService {
         email: string;
         nome: string;
         telefone: string;
+        endereco: string | null;
     }>;
     atualizarUsuario(id: number, dados: any): Promise<{
         id: number;
@@ -61,6 +64,7 @@ export declare class UsuarioService {
         email: string;
         nome: string;
         telefone: string;
+        endereco: string | null;
     }>;
     deletarUsuario(id: number): Promise<{
         message: string;

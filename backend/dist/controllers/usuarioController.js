@@ -41,7 +41,7 @@ const usuarioService = new usuarioService_1.UsuarioService();
  */
 const criarUsuario = async (req, res) => {
     try {
-        const { nome, email, telefone } = req.body;
+        const { nome, email, telefone, endereco } = req.body;
         if (!nome || !email || !telefone) {
             return res.status(400).json({
                 error: 'Todos os campos são obrigatórios: nome, email, telefone'
@@ -50,7 +50,8 @@ const criarUsuario = async (req, res) => {
         const usuario = await usuarioService.criarUsuario({
             nome,
             email,
-            telefone
+            telefone,
+            endereco
         });
         res.status(201).json({
             message: 'Usuário criado com sucesso',
@@ -99,6 +100,7 @@ const listarUsuarios = async (req, res) => {
                 nome: true,
                 email: true,
                 telefone: true,
+                endereco: true,
                 createdAt: true,
                 updatedAt: true,
             },
@@ -203,11 +205,12 @@ exports.buscarUsuario = buscarUsuario;
 const atualizarUsuario = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nome, email, telefone } = req.body;
+        const { nome, email, telefone, endereco } = req.body;
         const usuario = await usuarioService.atualizarUsuario(parseInt(id), {
             nome,
             email,
-            telefone
+            telefone,
+            endereco
         });
         res.json({
             message: 'Usuário atualizado com sucesso',

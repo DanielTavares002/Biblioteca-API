@@ -38,7 +38,7 @@ const usuarioService = new UsuarioService();
  */
 export const criarUsuario = async (req: Request, res: Response) => {
   try {
-    const { nome, email, telefone } = req.body;
+    const { nome, email, telefone, endereco } = req.body;
 
     if (!nome || !email || !telefone) {
       return res.status(400).json({ 
@@ -49,7 +49,8 @@ export const criarUsuario = async (req: Request, res: Response) => {
     const usuario = await usuarioService.criarUsuario({
       nome,
       email,
-      telefone
+      telefone,
+      endereco
     });
 
     res.status(201).json({
@@ -99,6 +100,7 @@ export const listarUsuarios = async (req: Request, res: Response) => {
         nome: true,
         email: true,
         telefone: true,
+        endereco: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -205,12 +207,13 @@ export const buscarUsuario = async (req: Request, res: Response) => {
 export const atualizarUsuario = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { nome, email, telefone } = req.body;
+    const { nome, email, telefone, endereco } = req.body;
 
     const usuario = await usuarioService.atualizarUsuario(parseInt(id), {
       nome,
       email,
-      telefone
+      telefone,
+      endereco
     });
 
     res.json({

@@ -1,0 +1,61 @@
+/
++-- .env
++-- .gitignore
++-- docker-compose.yml
++-- package-lock.json
++-- README.md
++-- shell.nix
+¦
++-- .idx/
+¦   +-- airules.md
+¦   +-- dev.nix
+¦
++-- .vscode/
+¦   +-- settings.json
+¦
++-- backend/
+    +-- package.json
+    +-- package-lock.json
+    +-- tsconfig.json
+    ¦
+    +-- src/                     
+    ¦   +-- server.ts
+    ¦   ¦
+    ¦   +-- controllers/
+    ¦   ¦   +-- authController.ts
+    ¦   ¦   +-- emprestimoController.ts
+    ¦   ¦   +-- livroController.ts
+    ¦   ¦   +-- usuarioController.ts
+    ¦   ¦
+    ¦   +-- routes/
+    ¦   ¦   +-- authRoutes.ts
+    ¦   ¦   +-- emprestimoRoutes.ts
+    ¦   ¦   +-- livroRoutes.ts
+    ¦   ¦   +-- usuarioRoutes.ts
+    ¦   ¦
+    ¦   +-- services/
+    ¦   ¦   +-- emprestimoService.ts
+    ¦   ¦   +-- livroService.ts
+    ¦   ¦   +-- usuarioService.ts
+    ¦   ¦   +-- index.ts
+    ¦   ¦
+    ¦   +-- middleware/
+    ¦   ¦   +-- auth.ts
+    ¦   ¦   +-- validation.ts
+    ¦   ¦
+    ¦   +-- models/
+    ¦   ¦   +-- Secretario.ts
+    ¦   ¦
+    ¦   +-- utils/
+    ¦   ¦   +-- firebase.ts
+    ¦   ¦   +-- prisma.ts
+    ¦   ¦   +-- validation.ts
+    ¦   ¦
+    ¦   +-- docs/
+    ¦   ¦   +-- swagger.ts
+    ¦   ¦
+    ¦   +-- types/
+    ¦       +-- index.ts
+    ¦
+    +-- prisma/
+        +-- schema.prisma

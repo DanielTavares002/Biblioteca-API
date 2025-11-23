@@ -1,47 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Button,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  IconButton,
-  Chip,
+  Container,
   Typography,
-  Alert,
-  Snackbar
+  Box,
+  Grid,
+  TextField,
+  Chip,
+  CircularProgress,
+  Alert
 } from '@mui/material';
-import { Edit, Delete, Add } from '@mui/icons-material';
-import { UsuarioForm } from '../components/usuarios/UsuarioForm';
+import { Add, Search, Refresh, Edit, Delete } from '@mui/icons-material';
+import * as UI from '../components/ui';
 import { usuarioService } from '../services/usuarioService';
-import type { Usuario } from '../services/usuarioService';
+import type { Usuario } from '../services/types';
 
 export const UsuarioPage: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
-  
-  // Paginação
-  const [pagina, setPagina] = useState(0);
-  const [limite, setLimite] = useState(10);
-  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [modalAberto, setModalAberto] = useState(false);
+  const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
+  const [formData, setFormData] = useState({
+    nome: '',
+    email: '',
+    telefone: '',
+    endereco: ''
+  });
+  const [enviando, setEnviando] = useState(false);
 
+  // Carregar usuários
   const carregarUsuarios = async () => {
-    setLoading(true);
     try {
-      const response = await usuarioService.getAll(pagina + 1, limite);
-      setUsuarios(response.usuarios);
-      setTotal(response.paginacao.total);
+      setLoading(true);
+      const response = await usuarioService.getAll();
+      
+      // Debug para ver a estrutura real
+      console.log('Resposta do usuário service:', response);
+      
+      // Tente diferentes estruturas de resposta
+      let usuariosData = [];
+      
+      if (response.usuarios) {
+        usuariosData = response.usuarios;
+      } else if (response.data && Array.isArray(response.data)) {
+        usuariosData = response.data;
+      } else if (response.data && response.data.usuarios) {
+        usuariosData = response.data.usuarios;
+      } else if (Array.isArray(response)) {
+        usuariosData = response;
+      }
+      
+      setUsuarios(usuariosData);
+      setError('');
     } catch (error) {
-      console.error('Erro ao carregar usuários:', error);
-      mostrarSnackbar('Erro ao carregar usuários', 'error');
+      console.error('Erro:', error);
+      setError('Falha ao carregar usuários');
     } finally {
       setLoading(false);
     }
@@ -49,166 +64,406 @@ export const UsuarioPage: React.FC = () => {
 
   useEffect(() => {
     carregarUsuarios();
-  }, [pagina, limite]);
+  }, []);
 
-  const mostrarSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
-    setSnackbar({ open: true, message, severity });
-  };
-
-  const handleCriarUsuario = async (usuarioData: Omit<Usuario, 'id'>) => {
-    try {
-        await usuarioService.create(usuarioData);
-        setFormOpen(false);
-        carregarUsuarios();
-        mostrarSnackbar('Usuário criado com sucesso!');
-    } catch (error: any) {
-        mostrarSnackbar(error.response?.data?.error || 'Erro ao criar usuário', 'error');
-    }
-  };
-
-  const handleEditarUsuario = async (usuarioData: Omit<Usuario, 'id'>) => {
-    if (!editingUsuario?.id) return;
-    
-    try {
-      await usuarioService.update(editingUsuario.id, usuarioData);
-      setFormOpen(false);
-      setEditingUsuario(null);
+  // Buscar usuários por nome
+  const buscarUsuarios = async () => {
+    if (!searchTerm.trim()) {
       carregarUsuarios();
-      mostrarSnackbar('Usuário atualizado com sucesso!');
-    } catch (error: any) {
-      mostrarSnackbar(error.response?.data?.error || 'Erro ao atualizar usuário', 'error');
-    }
-  };
-
-  const handleDeletarUsuario = async (id: number) => {
-    if (!window.confirm('Tem certeza que deseja deletar este usuário?')) {
       return;
     }
 
     try {
-      await usuarioService.delete(id);
-      carregarUsuarios();
-      mostrarSnackbar('Usuário deletado com sucesso!');
-    } catch (error: any) {
-      mostrarSnackbar(error.response?.data?.error || 'Erro ao deletar usuário', 'error');
+      const response = await usuarioService.buscarUsuarios(searchTerm);
+      setUsuarios(response.data.usuarios || []);
+    } catch (error) {
+      console.error('Erro na busca:', error);
+      setError('Erro ao buscar usuários');
     }
   };
 
-  const handleOpenEdit = (usuario: Usuario) => {
-    setEditingUsuario(usuario);
-    setFormOpen(true);
+  // Deletar usuário
+  const deletarUsuario = async (id: number) => {
+    if (!confirm('Tem certeza que deseja excluir este usuário?')) {
+      return;
+    }
+
+    try {
+      await usuarioService.deleteUsuario(id);
+      carregarUsuarios();
+    } catch (error) {
+      console.error('Erro ao deletar:', error);
+      alert('Erro ao excluir usuário');
+    }
   };
 
-  const handleCloseForm = () => {
-    setFormOpen(false);
-    setEditingUsuario(null);
+  // Abrir/fechar modal de cadastro
+  const abrirModal = () => {
+    setModalAberto(true);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPagina(newPage);
+  const fecharModal = () => {
+    setModalAberto(false);
+    setFormData({
+      nome: '',
+      email: '',
+      telefone: '',
+      endereco: ''
+    });
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLimite(parseInt(event.target.value, 10));
-    setPagina(0);
+  // Abrir/fechar modal de edição
+  const abrirModalEdicao = async (id: number) => {
+    try {
+      const response = await usuarioService.getById(id);
+      
+      // Tente diferentes estruturas de resposta
+      let usuario;
+      if (response.usuario) {
+        usuario = response.usuario;
+      } else if (response.data && response.data.usuario) {
+        usuario = response.data.usuario;
+      } else if (response.data) {
+        usuario = response.data;
+      } else {
+        usuario = response;
+      }
+
+      console.log('Usuário carregado para edição:', usuario); // Para debug
+
+      setUsuarioEditando(usuario);
+      setFormData({
+        nome: usuario.nome || '',
+        email: usuario.email || '',
+        telefone: usuario.telefone || '',
+        endereco: usuario.endereco || ''
+      });
+      setModalEdicaoAberto(true);
+    } catch (error) {
+      console.error('Erro ao carregar usuário para edição:', error);
+      alert('Erro ao carregar dados do usuário');
+    }
   };
+
+  const fecharModalEdicao = () => {
+    setModalEdicaoAberto(false);
+    setUsuarioEditando(null);
+    setFormData({
+      nome: '',
+      email: '',
+      telefone: '',
+      endereco: ''
+    });
+  };
+
+  // Manipular mudanças no formulário
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Submeter formulário de cadastro
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEnviando(true);
+
+    try {
+      await usuarioService.create(formData);
+      carregarUsuarios();
+      fecharModal();
+      alert('Usuário cadastrado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao cadastrar:', error);
+      alert(error.response?.data?.error || 'Erro ao cadastrar usuário');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  // Submeter formulário de edição
+  const handleEditar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!usuarioEditando) return;
+
+    setEnviando(true);
+
+    try {
+      await usuarioService.update(usuarioEditando.id, formData);
+      carregarUsuarios();
+      fecharModalEdicao();
+      alert('Usuário atualizado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao editar:', error);
+      alert(error.response?.data?.error || 'Erro ao editar usuário');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box className="min-h-screen flex items-center justify-center">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Box className="p-6">
-      <Box className="flex justify-between items-center mb-6">
-        <Typography variant="h4" className="text-gray-800 font-bold">
-          Gerenciar Usuários
-        </Typography>
-        <Button
-          variant="contained"
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Barra de Ações */}
+      <Box className="flex flex-col lg:flex-row justify-end items-center gap-4 mb-8">
+        <Box className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+          <TextField
+            placeholder="Buscar por nome..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && buscarUsuarios()}
+            size="small"
+            sx={{ width: { xs: '100%', sm: 256 } }}
+          />
+          <Box className="flex gap-2">
+            <UI.Button
+              onClick={buscarUsuarios}
+              startIcon={<Search />}
+              variant="outlined"
+            >
+              Buscar
+            </UI.Button>
+            <UI.Button
+              onClick={carregarUsuarios}
+              startIcon={<Refresh />}
+              variant="outlined"
+              color="secondary"
+            >
+              Limpar
+            </UI.Button>
+          </Box>
+        </Box>
+        <UI.Button
+          onClick={abrirModal}
           startIcon={<Add />}
-          onClick={() => setFormOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="font-semibold"
         >
           Novo Usuário
-        </Button>
+        </UI.Button>
       </Box>
 
-      <Paper className="shadow-lg rounded-lg">
-        <TableContainer>
-          <Table>
-            <TableHead className="bg-gray-50">
-              <TableRow>
-                <TableCell className="font-semibold">Nome</TableCell>
-                <TableCell className="font-semibold">Email</TableCell>
-                <TableCell className="font-semibold">Telefone</TableCell>
-                <TableCell className="font-semibold">Data Cadastro</TableCell>
-                <TableCell className="font-semibold text-center">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {usuarios.map((usuario) => (
-                <TableRow 
-                  key={usuario.id}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <TableCell className="font-medium">{usuario.nome}</TableCell>
-                  <TableCell>{usuario.email}</TableCell>
-                  <TableCell>{usuario.telefone}</TableCell>
-                  <TableCell>
-                    {usuario.createdAt ? new Date(usuario.createdAt).toLocaleDateString('pt-BR') : '-'}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <IconButton
-                      onClick={() => handleOpenEdit(usuario)}
-                      className="text-blue-600 hover:bg-blue-50"
-                      size="small"
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleDeletarUsuario(usuario.id!)}
-                      className="text-red-600 hover:bg-red-50"
-                      size="small"
-                    >
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={total}
-          rowsPerPage={limite}
-          page={pagina}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="Linhas por página:"
-          labelDisplayedRows={({ from, to, count }) => 
-            `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
-          }
-        />
-      </Paper>
-
-      <UsuarioForm
-        open={formOpen}
-        onClose={handleCloseForm}
-        onSave={editingUsuario ? handleEditarUsuario : handleCriarUsuario}
-        usuario={editingUsuario}
-      />
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-      >
-        <Alert 
-          severity={snackbar.severity}
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-        >
-          {snackbar.message}
+      {/* Alert de Erro */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
         </Alert>
-      </Snackbar>
-    </Box>
+      )}
+
+      {/* Estatísticas */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <UI.Card hover>
+            <Box className="text-center">
+              <Typography color="textSecondary" gutterBottom>
+                Total de Usuários
+              </Typography>
+              <Typography variant="h4" component="div">
+                {usuarios.length}
+              </Typography>
+            </Box>
+          </UI.Card>
+        </Grid>
+      </Grid>
+
+      {/* Grid de Usuários */}
+      <Grid container spacing={3}>
+        {usuarios.length === 0 ? (
+          <Grid item xs={12}>
+            <Box className="text-center py-12">
+              <Typography variant="h6" color="textSecondary">
+                Nenhum usuário encontrado
+              </Typography>
+            </Box>
+          </Grid>
+        ) : (
+          usuarios.map(usuario => (
+            <Grid item xs={12} sm={6} md={4} key={usuario.id}>
+              <UI.Card hover>
+                <Box className="flex justify-between items-start mb-3">
+                  <Typography variant="h6" component="h3" className="pr-2">
+                    {usuario.nome}
+                  </Typography>
+                  <Chip
+                    label="Ativo"
+                    color="success"
+                    size="small"
+                  />
+                </Box>
+
+                <Box className="space-y-2 mb-3">
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>Email:</strong> {usuario.email}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>Telefone:</strong> {usuario.telefone}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>Endereço:</strong> {usuario.endereco}
+                  </Typography>
+                </Box>
+
+                <Box className="flex gap-2">
+                  <UI.Button
+                    size="small"
+                    variant="outlined"
+                    color="warning"
+                    startIcon={<Edit />}
+                    onClick={() => abrirModalEdicao(usuario.id)}
+                    fullWidth
+                  >
+                    Editar
+                  </UI.Button>
+                  <UI.Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    startIcon={<Delete />}
+                    onClick={() => deletarUsuario(usuario.id)}
+                    fullWidth
+                  >
+                    Excluir
+                  </UI.Button>
+                </Box>
+              </UI.Card>
+            </Grid>
+          ))
+        )}
+      </Grid>
+
+      {/* Modal de Cadastro */}
+      <UI.Modal
+        open={modalAberto}
+        onClose={fecharModal}
+        title="Cadastrar Novo Usuário"
+        actions={
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <UI.Button onClick={fecharModal} disabled={enviando}>
+              Cancelar
+            </UI.Button>
+            <UI.Button
+              onClick={handleSubmit}
+              disabled={enviando}
+              startIcon={enviando ? <CircularProgress size={16} /> : null}
+            >
+              {enviando ? 'Cadastrando...' : 'Cadastrar Usuário'}
+            </UI.Button>
+          </Box>
+        }
+      >
+        <Box className="space-y-3">
+          <TextField
+            name="nome"
+            label="Nome Completo"
+            value={formData.nome}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="email"
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="telefone"
+            label="Telefone"
+            value={formData.telefone}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="endereco"
+            label="Endereço"
+            multiline
+            rows={2}
+            value={formData.endereco}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+        </Box>
+      </UI.Modal>
+
+      {/* Modal de Edição */}
+      <UI.Modal
+        open={modalEdicaoAberto}
+        onClose={fecharModalEdicao}
+        title="Editar Usuário"
+        actions={
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <UI.Button onClick={fecharModalEdicao} disabled={enviando}>
+              Cancelar
+            </UI.Button>
+            <UI.Button
+              onClick={handleEditar}
+              disabled={enviando}
+              startIcon={enviando ? <CircularProgress size={16} /> : null}
+            >
+              {enviando ? 'Atualizando...' : 'Atualizar Usuário'}
+            </UI.Button>
+          </Box>
+        }
+      >
+        <Box className="space-y-3">
+          <TextField
+            name="nome"
+            label="Nome Completo"
+            value={formData.nome}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="email"
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="telefone"
+            label="Telefone"
+            value={formData.telefone}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="endereco"
+            label="Endereço"
+            multiline
+            rows={2}
+            value={formData.endereco}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+        </Box>
+      </UI.Modal>
+    </Container>
   );
-}
+};
