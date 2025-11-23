@@ -18,7 +18,8 @@ class UsuarioService {
                 data: {
                     nome: dados.nome,
                     email: dados.email,
-                    telefone: dados.telefone
+                    telefone: dados.telefone,
+                    endereco: dados.endereco
                 }
             });
             return usuario;

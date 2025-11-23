@@ -1,31 +1,26 @@
-import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import axios from 'axios';
+import { Box } from '@mui/material';
+import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { UsuarioPage } from './pages/UsuarioPage';
+import { EmprestimosPage } from './pages/EmprestimosPage';
+import { LoginPage } from './pages/auth/LoginPage';
+import { ProtectedRoute } from './components/ui/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './hooks/useAuth';
+import { Sidebar } from './components/Sidebar';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
-  Box,
   Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Chip,
   CircularProgress,
   Alert
 } from '@mui/material';
 import { Add, Search, Refresh, Edit, Delete } from '@mui/icons-material';
-import { UsuarioPage } from './pages/UsuarioPage';
-import { EmprestimosPage } from './pages/EmprestimosPage';
-import { AuthProvider } from './context/AuthContext';
-import { LoginPage } from './pages/LoginPage';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { useAuth } from './hooks/useAuth';
+import axios from 'axios';
+import * as UI from './components/ui';
 
 // Interface para o Livro
 interface Livro {
@@ -38,6 +33,7 @@ interface Livro {
   disponivel: boolean;
 }
 
+// Função página de livros
 function LivrosPage() {
   const [livros, setLivros] = useState<Livro[]>([]);
   const [loading, setLoading] = useState(true);
@@ -219,8 +215,8 @@ function LivrosPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Barra de Ações */}
-      <Box className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-8">
+      {/* Barra de Ações - USANDO NOSSOS COMPONENTES */}
+      <Box className="flex flex-col lg:flex-row justify-end items-center gap-4 mb-8">
         <Box className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           <TextField
             placeholder="Buscar por título..."
@@ -231,32 +227,30 @@ function LivrosPage() {
             sx={{ width: { xs: '100%', sm: 256 } }}
           />
           <Box className="flex gap-2">
-            <Button
-              variant="contained"
+            <UI.Button
               onClick={buscarLivros}
               startIcon={<Search />}
-              className="bg-gray-600 hover:bg-gray-700"
+              variant="outlined"
             >
               Buscar
-            </Button>
-            <Button
-              variant="contained"
+            </UI.Button>
+            <UI.Button
               onClick={carregarLivros}
               startIcon={<Refresh />}
-              className="bg-gray-500 hover:bg-gray-600"
+              variant="outlined"
+              color="secondary"
             >
               Limpar
-            </Button>
+            </UI.Button>
           </Box>
         </Box>
-        <Button
-          variant="contained"
+        <UI.Button
           onClick={abrirModal}
           startIcon={<Add />}
-          className="bg-blue-600 hover:bg-blue-700 font-semibold"
+          className="font-semibold"
         >
           Novo Livro
-        </Button>
+        </UI.Button>
       </Box>
 
       {/* Alert de Erro */}
@@ -269,28 +263,28 @@ function LivrosPage() {
       {/* Estatísticas */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6}>
-          <Card>
-            <CardContent className="text-center">
+          <UI.Card hover>
+            <Box className="text-center">
               <Typography color="textSecondary" gutterBottom>
                 Total de Livros
               </Typography>
               <Typography variant="h4" component="div">
                 {livros.length}
               </Typography>
-            </CardContent>
-          </Card>
+            </Box>
+          </UI.Card>
         </Grid>
         <Grid item xs={12} sm={6}>
-          <Card>
-            <CardContent className="text-center">
+          <UI.Card hover>
+            <Box className="text-center">
               <Typography color="textSecondary" gutterBottom>
                 Disponíveis
               </Typography>
               <Typography variant="h4" component="div">
                 {livros.filter(l => l.disponivel).length}
               </Typography>
-            </CardContent>
-          </Card>
+            </Box>
+          </UI.Card>
         </Grid>
       </Grid>
 
@@ -307,313 +301,249 @@ function LivrosPage() {
         ) : (
           livros.map(livro => (
             <Grid item xs={12} sm={6} md={4} key={livro.id}>
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardContent>
-                  <Box className="flex justify-between items-start mb-3">
-                    <Typography variant="h6" component="h3" className="pr-2">
-                      {livro.titulo}
-                    </Typography>
-                    <Chip
-                      label={livro.disponivel ? 'Disponível' : 'Indisponível'}
-                      color={livro.disponivel ? 'success' : 'error'}
-                      size="small"
-                    />
-                  </Box>
+              <UI.Card hover>
+                <Box className="flex justify-between items-start mb-3">
+                  <Typography variant="h6" component="h3" className="pr-2">
+                    {livro.titulo}
+                  </Typography>
+                  <Chip
+                    label={livro.disponivel ? 'Disponível' : 'Indisponível'}
+                    color={livro.disponivel ? 'success' : 'error'}
+                    size="small"
+                  />
+                </Box>
 
-                  <Box className="space-y-1 mb-3">
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>Autor:</strong> {livro.autor}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>Editora:</strong> {livro.editora}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>Ano:</strong> {livro.ano}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>ISBN:</strong> {livro.isbn}
-                    </Typography>
-                  </Box>
+                <Box className="space-y-1 mb-3">
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>Autor:</strong> {livro.autor}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>Editora:</strong> {livro.editora}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>Ano:</strong> {livro.ano}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>ISBN:</strong> {livro.isbn}
+                  </Typography>
+                </Box>
 
-                  <CardActions className="flex gap-2 p-0">
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="warning"
-                      startIcon={<Edit />}
-                      onClick={() => abrirModalEdicao(livro.id)}
-                      fullWidth
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      startIcon={<Delete />}
-                      onClick={() => deletarLivro(livro.id)}
-                      fullWidth
-                    >
-                      Excluir
-                    </Button>
-                  </CardActions>
-                </CardContent>
-              </Card>
+                <Box className="flex gap-2">
+                  <UI.Button
+                    size="small"
+                    variant="outlined"
+                    color="warning"
+                    startIcon={<Edit />}
+                    onClick={() => abrirModalEdicao(livro.id)}
+                    fullWidth
+                  >
+                    Editar
+                  </UI.Button>
+                  <UI.Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    startIcon={<Delete />}
+                    onClick={() => deletarLivro(livro.id)}
+                    fullWidth
+                  >
+                    Excluir
+                  </UI.Button>
+                </Box>
+              </UI.Card>
             </Grid>
           ))
         )}
       </Grid>
 
       {/* Modal de Cadastro */}
-      <Dialog 
-        open={modalAberto} 
+      <UI.Modal
+        open={modalAberto}
         onClose={fecharModal}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          <Typography variant="h5" component="h2">
-            Cadastrar Novo Livro
-          </Typography>
-        </DialogTitle>
-
-        <form onSubmit={handleSubmit}>
-          <DialogContent>
-            <Box className="space-y-3">
-              <TextField
-                name="titulo"
-                label="Título"
-                value={formData.titulo}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-              />
-              <TextField
-                name="autor"
-                label="Autor"
-                value={formData.autor}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-              />
-              <TextField
-                name="isbn"
-                label="ISBN"
-                value={formData.isbn}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-              />
-              <TextField
-                name="editora"
-                label="Editora"
-                value={formData.editora}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-              />
-              <TextField
-                name="ano"
-                label="Ano de Publicação"
-                type="number"
-                value={formData.ano}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-                inputProps={{ min: 1000, max: 2025 }}
-              />
-            </Box>
-          </DialogContent>
-
-          <DialogActions sx={{ p: 3, gap: 1 }}>
-            <Button onClick={fecharModal} disabled={enviando}>
+        title="Cadastrar Novo Livro"
+        actions={
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <UI.Button onClick={fecharModal} disabled={enviando}>
               Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
+            </UI.Button>
+            <UI.Button
+              onClick={handleSubmit}
               disabled={enviando}
               startIcon={enviando ? <CircularProgress size={16} /> : null}
             >
               {enviando ? 'Cadastrando...' : 'Cadastrar Livro'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+            </UI.Button>
+          </Box>
+        }
+      >
+        <Box className="space-y-3">
+          <TextField
+            name="titulo"
+            label="Título"
+            value={formData.titulo}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="autor"
+            label="Autor"
+            value={formData.autor}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="isbn"
+            label="ISBN"
+            value={formData.isbn}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="editora"
+            label="Editora"
+            value={formData.editora}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="ano"
+            label="Ano de Publicação"
+            type="number"
+            value={formData.ano}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+            inputProps={{ min: 1000, max: 2025 }}
+          />
+        </Box>
+      </UI.Modal>
 
       {/* Modal de Edição */}
-      <Dialog
+      <UI.Modal
         open={modalEdicaoAberto}
         onClose={fecharModalEdicao}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          <Typography variant="h5" component="h2">
-            Editar Livro
-          </Typography>
-        </DialogTitle>
-
-        <form onSubmit={handleEditar}>
-          <DialogContent>
-            <Box className="space-y-3">
-              <TextField
-                name="titulo"
-                label="Título"
-                value={formData.titulo}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-              />
-              <TextField
-                name="autor"
-                label="Autor"
-                value={formData.autor}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-              />
-              <TextField
-                name="isbn"
-                label="ISBN"
-                value={formData.isbn}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-              />
-              <TextField
-                name="editora"
-                label="Editora"
-                value={formData.editora}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-              />
-              <TextField
-                name="ano"
-                label="Ano de Publicação"
-                type="number"
-                value={formData.ano}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                margin="dense"
-                inputProps={{ min: 1000, max: 2025 }}
-              />
-            </Box>
-          </DialogContent>
-
-          <DialogActions sx={{ p: 3, gap: 1 }}>
-            <Button onClick={fecharModalEdicao} disabled={enviando}>
+        title="Editar Livro"
+        actions={
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <UI.Button onClick={fecharModalEdicao} disabled={enviando}>
               Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
+            </UI.Button>
+            <UI.Button
+              onClick={handleEditar}
               disabled={enviando}
               startIcon={enviando ? <CircularProgress size={16} /> : null}
             >
               {enviando ? 'Atualizando...' : 'Atualizar Livro'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+            </UI.Button>
+          </Box>
+        }
+      >
+        <Box className="space-y-3">
+          <TextField
+            name="titulo"
+            label="Título"
+            value={formData.titulo}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="autor"
+            label="Autor"
+            value={formData.autor}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="isbn"
+            label="ISBN"
+            value={formData.isbn}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="editora"
+            label="Editora"
+            value={formData.editora}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            name="ano"
+            label="Ano de Publicação"
+            type="number"
+            value={formData.ano}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+            inputProps={{ min: 1000, max: 2025 }}
+          />
+        </Box>
+      </UI.Modal>
     </Container>
   );
 }
 
-// COMPONENTE HEADER SEPARADO
-function Header() {
-  const { secretario, logout, isAuthenticated } = useAuth();
+function MainLayout() {
+  const { isAuthenticated } = useAuth();
 
   return (
-    <Box 
-      className="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg"
-      sx={{ py: 4 }}
-    >
-      <Container maxWidth="lg">
-        <Box className="flex justify-between items-center mb-4">
-          <Typography variant="h3" component="h1" fontWeight="bold">
-            📚 Biblioteca Digital
-          </Typography>
+    <Box sx={{ display: 'flex' }}>
+      {isAuthenticated && <Sidebar />}
 
-          <Box className="flex items-center gap-4">
-            {isAuthenticated && secretario && (
-              <>
-                <Link 
-                  to="/" 
-                  className="text-white hover:text-blue-200 font-medium text-lg"
-                >
-                  Livros
-                </Link>
-                <Link 
-                  to="/usuarios" 
-                  className="text-white hover:text-blue-200 font-medium text-lg"
-                >
-                  Usuários
-                </Link>
-                <Link to="/emprestimos" className="text-white hover:text-blue-200 font-medium text-lg">
-                  Empréstimos
-                </Link>
-                <Box className="flex items-center gap-2">
-                  <Typography variant="body2" className="text-blue-100">
-                    Olá, {secretario.nome}
-                  </Typography>
-                  <Button 
-                    variant="outlined" 
-                    color="inherit" 
-                    size="small"
-                    onClick={logout}
-                    className="border-white text-white hover:bg-white hover:text-blue-600"
-                  >
-                    Sair
-                  </Button>
-                </Box>
-              </>
-            )}
-          </Box>
-        </Box>
-        <Typography variant="h6" className="text-blue-100">
-          Sistema de Gerenciamento de Livros
-        </Typography>
-      </Container>
+      {/* Conteúdo Principal */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { md: `calc(100% - 240px)` },
+          minHeight: '100vh',
+          bgcolor: 'grey.50'
+        }}
+      >
+        <Routes>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/livros" element={<LivrosPage />} />
+          <Route path="/usuarios" element={<UsuarioPage />} />
+          <Route path="/emprestimos" element={<EmprestimosPage />} />
+        </Routes>
+      </Box>
     </Box>
   );
 }
 
-// COMPONENTE APP PRINCIPAL
+
+
+// Função app principal
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Box className="min-h-screen bg-gray-50">
-          <Header />
-          
-          {/* Rotas */}
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={
+            <Route path="/*" element={
               <ProtectedRoute>
-                <LivrosPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/usuarios" element={
-              <ProtectedRoute>
-                <UsuarioPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/emprestimos" element={
-              <ProtectedRoute>
-                <EmprestimosPage />
+                <MainLayout />
               </ProtectedRoute>
             } />
           </Routes>
