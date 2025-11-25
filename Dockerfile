@@ -25,5 +25,5 @@ RUN npx tsc
 # Expor porta
 EXPOSE 10000
 
-# Comando para rodar
-CMD ["npm", "start"]
+# Comando para rodar (aplica migrations, seed e inicia)
+CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx src/scripts/seedDatabase.ts && npm start"]
