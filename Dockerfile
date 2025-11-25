@@ -16,7 +16,7 @@ RUN npx prisma generate
 COPY . .
 
 # Compilar TypeScript
-RUN npm run build
+RUN npx tsc
 
 # Expor porta
 EXPOSE 10000

@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsc && node dist/server.js",
-    "build": "echo 'Build completo - Prisma já foi gerado localmente'",
+    "build": "npx tsc",
     "start": "node dist/server.js",
     "prisma:generate:local": "prisma generate",
     "prisma:generate": "npx @prisma/client generate",
