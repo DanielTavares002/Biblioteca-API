@@ -14,12 +14,9 @@ const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const app = (0, express_1.default)();
 const PORT = parseInt(process.env.PORT || '3000');
 // Configuração CORS
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
 const corsOptions = {
-    origin: [
-        'http://localhost:5173',
-        'https://3000-firebase-bibilioteca-api-1760553480549.cluster-thle3dudhffpwss7zs5hxaeu2o.cloudworkstations.dev',
-        'http://localhost:3000'
-    ],
+    origin: CORS_ORIGIN,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
