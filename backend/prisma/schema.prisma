@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://admin:7BDVYLZ0GQxAPkpRC0X9hNN3KAswDbBw@dpg-d4itsc24d50c73873jng-a.oregon-postgres.render.com:5432/biblioteca_eswm?sslmode=require"
+  url      = env("DATABASE_URL")
 }
 
 model Livro {
