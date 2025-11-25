@@ -1,10 +1,11 @@
 FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /app/backend
 
 # Copiar arquivos de dependências
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma/
+COPY backend/tsconfig.json ./
 
 # Instalar dependências
 RUN npm install
@@ -13,7 +14,7 @@ RUN npm install
 RUN npx prisma generate
 
 # Copiar o resto do código
-COPY . .
+COPY backend/src ./src
 
 # Compilar TypeScript
 RUN npx tsc
