@@ -1,5 +1,8 @@
 FROM node:18-alpine
 
+# Instalar OpenSSL que o Prisma precisa
+RUN apk add --no-cache openssl
+
 WORKDIR /app/backend
 
 # Copiar arquivos de dependências
