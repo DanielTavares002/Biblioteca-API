@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsc && node dist/server.js",
-    "build": "tsc --skipLibCheck",
+    "build": "tsc --noEmit false",
     "start": "node dist/server.js",
     "prisma:generate": "npx @prisma/client generate",
     "prisma:migrate": "npx prisma migrate dev",
