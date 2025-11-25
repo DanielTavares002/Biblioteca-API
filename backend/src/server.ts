@@ -6,7 +6,6 @@ import livroRoutes from './routes/livroRoutes'
 import usuarioRoutes from './routes/usuarioRoutes'
 import emprestimoRoutes from './routes/emprestimoRoutes'
 import authRoutes from './routes/authRoutes'
-import { execSync } from 'child_process';
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '3000')
@@ -55,14 +54,6 @@ app.use('*', (req, res) => {
     availableRoutes: ['/livros', '/usuarios', '/emprestimos', '/api-docs', '/health']
   })
 })
-
-try {
-  console.log('🔄 Tentando gerar Prisma Client...');
-  execSync('npx prisma generate', { stdio: 'inherit' });
-  console.log('✅ Prisma Client gerado com sucesso!');
-} catch (error) {
-  console.log('⚠️ Não foi possível gerar Prisma Client, continuando...');
-}
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`)
