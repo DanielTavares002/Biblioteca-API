@@ -7,13 +7,13 @@
     "dev": "tsc && node dist/server.js",
     "build": "tsc",
     "start": "node dist/server.js",
-    "prisma:generate": "npx prisma generate",
+    "prisma:generate": "npx @prisma/client generate",
     "prisma:migrate": "npx prisma migrate dev",
     "prisma:studio": "npx prisma studio",
     "prisma:reset": "npx prisma migrate reset",
     "prisma:deploy": "prisma migrate deploy",
     "seed": "tsx src/scripts/seedDatabse.ts",
-    "render:build": "npm install && npx prisma generate && npm run build",
+    "render:build": "npm install && npm run prisma:generate && npm run build",
     "render:start": "npm run prisma:deploy && node dist/server.js"
   },
   "dependencies": {
