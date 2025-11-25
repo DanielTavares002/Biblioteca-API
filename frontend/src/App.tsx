@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { Add, Search, Refresh, Edit, Delete } from '@mui/icons-material';
 import axios from 'axios';
+import api from './services/api';
 import * as UI from './components/ui';
 
 // Interface para o Livro
@@ -55,7 +56,7 @@ function LivrosPage() {
   const carregarLivros = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:3000/livros');
+      const response = await api.get('/livros');
       setLivros(response.data.livros || []);
       setError('');
     } catch (error) {
@@ -78,7 +79,7 @@ function LivrosPage() {
     }
 
     try {
-      const response = await axios.get(`http://localhost:3000/livros/buscar?titulo=${searchTerm}`);
+      const response = await api.get(`/livros/buscar?titulo=${searchTerm}`);
       setLivros(response.data.livros || []);
     } catch (error) {
       console.error('Erro na busca:', error);
@@ -93,7 +94,7 @@ function LivrosPage() {
     }
 
     try {
-      await axios.delete(`http://localhost:3000/livros/${id}`);
+      await api.delete(`/livros/${id}`);
       carregarLivros();
     } catch (error) {
       console.error('Erro ao deletar:', error);
@@ -120,7 +121,7 @@ function LivrosPage() {
   // Abrir/fechar modal de edição
   const abrirModalEdicao = async (id: number) => {
     try {
-      const response = await axios.get(`http://localhost:3000/livros/${id}`);
+      const response = await api.get(`/livros/${id}`);
       const livro = response.data.livro;
 
       setLivroEditando(livro);
@@ -165,7 +166,7 @@ function LivrosPage() {
     setEnviando(true);
 
     try {
-      await axios.post('http://localhost:3000/livros', {
+      await api.post('/livros', {
         ...formData,
         ano: parseInt(formData.ano)
       });
@@ -189,7 +190,7 @@ function LivrosPage() {
     setEnviando(true);
 
     try {
-      await axios.put(`http://localhost:3000/livros/${livroEditando.id}`, {
+      await api.put(`/livros/${livroEditando.id}`, {
         ...formData,
         ano: parseInt(formData.ano)
       });

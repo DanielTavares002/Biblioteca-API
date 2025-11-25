@@ -1,4 +1,4 @@
-import api from './api.ts';
+import api from './api';
 import type { Usuario, UsuarioResponse } from './types';
 
 export const usuarioService = {
