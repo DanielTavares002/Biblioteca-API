@@ -74,7 +74,7 @@ export const UsuarioPage: React.FC = () => {
     }
 
     try {
-      const response = await usuarioService.buscarUsuarios(searchTerm);
+      const response = await usuarioService.search(searchTerm);
       setUsuarios(response.data.usuarios || []);
     } catch (error) {
       console.error('Erro na busca:', error);
@@ -89,7 +89,7 @@ export const UsuarioPage: React.FC = () => {
     }
 
     try {
-      await usuarioService.deleteUsuario(id);
+      await usuarioService.delete(id);
       carregarUsuarios();
     } catch (error) {
       console.error('Erro ao deletar:', error);
