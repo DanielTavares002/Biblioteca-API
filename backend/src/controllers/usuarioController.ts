@@ -89,7 +89,7 @@ export const criarUsuario = async (req: Request, res: Response) => {
 export const listarUsuarios = async (req: Request, res: Response) => {
   try {
     const pagina = parseInt(req.query.pagina as string) || 1;
-    const limite = parseInt(req.query.limite as string) || 10;
+    const limite = parseInt(req.query.limite as string) || 1000;
     const pular = (pagina - 1) * limite;
 
     const usuarios = await prisma.usuario.findMany({
