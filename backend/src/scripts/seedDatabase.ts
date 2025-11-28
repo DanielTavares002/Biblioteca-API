@@ -222,15 +222,13 @@ async function main() {
       {
         livroId: domCasmurro!.id,
         usuarioId: ana!.id,
-        dataEmprestimo: new Date('2024-11-20'),
-        dataDevolucao: new Date('2024-12-04'),
+        dataEmprestimo: new Date('2025-11-20'),
         devolvido: false
       },
       {
         livroId: revolucaoBichos!.id,
         usuarioId: carlos!.id,
-        dataEmprestimo: new Date('2024-11-22'),
-        dataDevolucao: new Date('2024-12-06'),
+        dataEmprestimo: new Date('2025-11-22'),
         devolvido: false
       }
     ]
@@ -242,15 +240,15 @@ async function main() {
       {
         livroId: pequenoPrincipe!.id,
         usuarioId: mariana!.id,
-        dataEmprestimo: new Date('2024-10-15'),
-        dataDevolucao: new Date('2024-10-28'),
+        dataEmprestimo: new Date('2025-10-15'),
+        dataDevolucao: new Date('2025-11-03'),
         devolvido: true
       },
       {
         livroId: harryPotter!.id,
         usuarioId: ana!.id,
-        dataEmprestimo: new Date('2024-10-10'),
-        dataDevolucao: new Date('2024-10-25'),
+        dataEmprestimo: new Date('2025-10-10'),
+        dataDevolucao: new Date('2025-11-16'),
         devolvido: true
       }
     ]
