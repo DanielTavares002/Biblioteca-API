@@ -8,7 +8,7 @@ import { ProtectedRoute } from './components/ui/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { Sidebar } from './components/Sidebar';
-import { LivrosPage } from './pages/livros/LivrosPag';
+import { LivrosPage } from './pages/livros/LivrosPage';
 import { useState, useEffect } from 'react';
 import {
   Container,
