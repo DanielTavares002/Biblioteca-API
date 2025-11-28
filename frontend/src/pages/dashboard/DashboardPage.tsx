@@ -15,9 +15,33 @@ import {
   Dashboard as DashboardIcon 
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { dashboardService } from '../services/dashboardService';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    totalLivros: 0,
+    totalUsuarios: 0,
+    emprestimosAtivos: 0,
+    livrosDisponiveis: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const carregarStats = async () => {
+      try {
+        const data = await dashboardService.getStats();
+        setStats(data);
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarStats();
+  }, []);
 
   const menuItems = [
     {
@@ -110,7 +134,7 @@ export const DashboardPage: React.FC = () => {
                 <Typography color="textSecondary" gutterBottom>
                   Total de Livros
                 </Typography>
-                <Typography variant="h4">0</Typography>
+                <Typography variant="h4">{stats.totalLivros}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -120,7 +144,7 @@ export const DashboardPage: React.FC = () => {
                 <Typography color="textSecondary" gutterBottom>
                   Usuários Cadastrados
                 </Typography>
-                <Typography variant="h4">0</Typography>
+                <Typography variant="h4">{stats.totalUsuarios}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -130,7 +154,7 @@ export const DashboardPage: React.FC = () => {
                 <Typography color="textSecondary" gutterBottom>
                   Empréstimos Ativos
                 </Typography>
-                <Typography variant="h4">0</Typography>
+                <Typography variant="h4">{stats.emprestimosAtivos}</Typography>
               </CardContent>
             </Card>
           </Grid>

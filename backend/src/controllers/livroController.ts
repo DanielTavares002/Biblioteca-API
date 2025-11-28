@@ -44,7 +44,7 @@ export const criarLivro = async (req: Request, res: Response) => {
 export const listarLivros = async (req: Request, res: Response) => {
   try {
     const pagina = parseInt(req.query.pagina as string) || 1;
-    const limite = parseInt(req.query.limite as string) || 10;
+    const limite = parseInt(req.query.limite as string) || 1000;
     const pular = (pagina - 1) * limite;
 
     const livros = await prisma.livro.findMany({

@@ -48,8 +48,8 @@ export const EmprestimoForm: React.FC<EmprestimoFormProps> = ({
         setLoadingData(true);
         try {
             const [usuariosResponse, livrosResponse] = await Promise.all([
-                usuarioService.getAll(1, 100),
-                livroService.getAll(1, 100)
+                usuarioService.getAll(),
+                livroService.getAll()
             ]);
 
             setUsuarios(usuariosResponse.usuarios);

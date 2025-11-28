@@ -6,6 +6,7 @@ import livroRoutes from './routes/livroRoutes'
 import usuarioRoutes from './routes/usuarioRoutes'
 import emprestimoRoutes from './routes/emprestimoRoutes'
 import authRoutes from './routes/authRoutes'
+import dashboardRoutes from './routes/dashboardRoutes'
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '3000')
@@ -33,6 +34,7 @@ app.use('/auth', authRoutes)
 app.use('/livros', livroRoutes)
 app.use('/usuarios', usuarioRoutes)
 app.use('/emprestimos', emprestimoRoutes)
+app.use('/dashboard', dashboardRoutes)
 
 // Rota padrão
 app.get('/', (req, res) => {

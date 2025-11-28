@@ -10,88 +10,84 @@ import {
   Alert
 } from '@mui/material';
 import { Add, Search, Refresh, Edit, Delete } from '@mui/icons-material';
-import * as UI from '../components/ui';
-import { usuarioService } from '../services/usuarioService';
-import type { Usuario } from '../services/types';
+import * as UI from '../../components/ui';
+import api from '../../services/api';
 
-export const UsuarioPage: React.FC = () => {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+// Interface para o Livro
+interface Livro {
+  id: number;
+  titulo: string;
+  autor: string;
+  isbn: string;
+  editora: string;
+  ano: number;
+  disponivel: boolean;
+}
+
+export const LivrosPage: React.FC = () => {
+  const [livros, setLivros] = useState<Livro[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [modalAberto, setModalAberto] = useState(false);
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
-  const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
+  const [livroEditando, setLivroEditando] = useState<Livro | null>(null);
   const [formData, setFormData] = useState({
-    nome: '',
-    email: '',
-    telefone: '',
-    endereco: ''
+    titulo: '',
+    autor: '',
+    isbn: '',
+    editora: '',
+    ano: ''
   });
   const [enviando, setEnviando] = useState(false);
 
-  // Carregar usuários
-  const carregarUsuarios = async () => {
+  // Carregar livros
+  const carregarLivros = async () => {
     try {
       setLoading(true);
-      const response = await usuarioService.getAll();
-      
-      console.log('Resposta do usuário service:', response);
-      
-      let usuariosData = [];
-      
-      if (response.usuarios) {
-        usuariosData = response.usuarios;
-      } else if (response.data && Array.isArray(response.data)) {
-        usuariosData = response.data;
-      } else if (response.data && response.data.usuarios) {
-        usuariosData = response.data.usuarios;
-      } else if (Array.isArray(response)) {
-        usuariosData = response;
-      }
-      
-      setUsuarios(usuariosData);
+      const response = await api.get('/livros');
+      setLivros(response.data.livros || []);
       setError('');
     } catch (error) {
       console.error('Erro:', error);
-      setError('Falha ao carregar usuários');
+      setError('Falha ao carregar livros');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    carregarUsuarios();
+    carregarLivros();
   }, []);
 
-  // Buscar usuários por nome
-  const buscarUsuarios = async () => {
+  // Buscar livros por título
+  const buscarLivros = async () => {
     if (!searchTerm.trim()) {
-      carregarUsuarios();
+      carregarLivros();
       return;
     }
 
     try {
-      const response = await usuarioService.search(searchTerm);
-      setUsuarios(response.data.usuarios || []);
+      const response = await api.get(`/livros/buscar?titulo=${searchTerm}`);
+      setLivros(response.data.livros || []);
     } catch (error) {
       console.error('Erro na busca:', error);
-      setError('Erro ao buscar usuários');
+      setError('Erro ao buscar livros');
     }
   };
 
-  // Deletar usuário
-  const deletarUsuario = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir este usuário?')) {
+  // Deletar livro
+  const deletarLivro = async (id: number) => {
+    if (!confirm('Tem certeza que deseja excluir este livro?')) {
       return;
     }
 
     try {
-      await usuarioService.delete(id);
-      carregarUsuarios();
+      await api.delete(`/livros/${id}`);
+      carregarLivros();
     } catch (error) {
       console.error('Erro ao deletar:', error);
-      alert('Erro ao excluir usuário');
+      alert('Erro ao excluir livro');
     }
   };
 
@@ -103,54 +99,44 @@ export const UsuarioPage: React.FC = () => {
   const fecharModal = () => {
     setModalAberto(false);
     setFormData({
-      nome: '',
-      email: '',
-      telefone: '',
-      endereco: ''
+      titulo: '',
+      autor: '',
+      isbn: '',
+      editora: '',
+      ano: ''
     });
   };
 
   // Abrir/fechar modal de edição
   const abrirModalEdicao = async (id: number) => {
     try {
-      const response = await usuarioService.getById(id);
-      
-      // Tente diferentes estruturas de resposta
-      let usuario;
-      if (response.usuario) {
-        usuario = response.usuario;
-      } else if (response.data && response.data.usuario) {
-        usuario = response.data.usuario;
-      } else if (response.data) {
-        usuario = response.data;
-      } else {
-        usuario = response;
-      }
+      const response = await api.get(`/livros/${id}`);
+      const livro = response.data.livro;
 
-      console.log('Usuário carregado para edição:', usuario); // Para debug
-
-      setUsuarioEditando(usuario);
+      setLivroEditando(livro);
       setFormData({
-        nome: usuario.nome || '',
-        email: usuario.email || '',
-        telefone: usuario.telefone || '',
-        endereco: usuario.endereco || ''
+        titulo: livro.titulo,
+        autor: livro.autor,
+        isbn: livro.isbn,
+        editora: livro.editora,
+        ano: livro.ano.toString()
       });
       setModalEdicaoAberto(true);
     } catch (error) {
-      console.error('Erro ao carregar usuário para edição:', error);
-      alert('Erro ao carregar dados do usuário');
+      console.error('Erro ao carregar livro para edição:', error);
+      alert('Erro ao carregar dados do livro');
     }
   };
 
   const fecharModalEdicao = () => {
     setModalEdicaoAberto(false);
-    setUsuarioEditando(null);
+    setLivroEditando(null);
     setFormData({
-      nome: '',
-      email: '',
-      telefone: '',
-      endereco: ''
+      titulo: '',
+      autor: '',
+      isbn: '',
+      editora: '',
+      ano: ''
     });
   };
 
@@ -169,13 +155,17 @@ export const UsuarioPage: React.FC = () => {
     setEnviando(true);
 
     try {
-      await usuarioService.create(formData);
-      carregarUsuarios();
+      await api.post('/livros', {
+        ...formData,
+        ano: parseInt(formData.ano)
+      });
+
+      carregarLivros();
       fecharModal();
-      alert('Usuário cadastrado com sucesso!');
+      alert('Livro cadastrado com sucesso!');
     } catch (error: any) {
       console.error('Erro ao cadastrar:', error);
-      alert(error.response?.data?.error || 'Erro ao cadastrar usuário');
+      alert(error.response?.data?.error || 'Erro ao cadastrar livro');
     } finally {
       setEnviando(false);
     }
@@ -184,18 +174,22 @@ export const UsuarioPage: React.FC = () => {
   // Submeter formulário de edição
   const handleEditar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!usuarioEditando) return;
+    if (!livroEditando) return;
 
     setEnviando(true);
 
     try {
-      await usuarioService.update(usuarioEditando.id, formData);
-      carregarUsuarios();
+      await api.put(`/livros/${livroEditando.id}`, {
+        ...formData,
+        ano: parseInt(formData.ano)
+      });
+
+      carregarLivros();
       fecharModalEdicao();
-      alert('Usuário atualizado com sucesso!');
+      alert('Livro atualizado com sucesso!');
     } catch (error: any) {
       console.error('Erro ao editar:', error);
-      alert(error.response?.data?.error || 'Erro ao editar usuário');
+      alert(error.response?.data?.error || 'Erro ao editar livro');
     } finally {
       setEnviando(false);
     }
@@ -211,27 +205,27 @@ export const UsuarioPage: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Barra de Ações */}
+      {/* Barra de Ações - USANDO NOSSOS COMPONENTES */}
       <Box className="flex flex-col lg:flex-row justify-end items-center gap-4 mb-8">
         <Box className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           <TextField
-            placeholder="Buscar por nome..."
+            placeholder="Buscar por título..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && buscarUsuarios()}
+            onKeyPress={(e) => e.key === 'Enter' && buscarLivros()}
             size="small"
             sx={{ width: { xs: '100%', sm: 256 } }}
           />
           <Box className="flex gap-2">
             <UI.Button
-              onClick={buscarUsuarios}
+              onClick={buscarLivros}
               startIcon={<Search />}
               variant="outlined"
             >
               Buscar
             </UI.Button>
             <UI.Button
-              onClick={carregarUsuarios}
+              onClick={carregarLivros}
               startIcon={<Refresh />}
               variant="outlined"
               color="secondary"
@@ -245,7 +239,7 @@ export const UsuarioPage: React.FC = () => {
           startIcon={<Add />}
           className="font-semibold"
         >
-          Novo Usuário
+          Novo Livro
         </UI.Button>
       </Box>
 
@@ -258,54 +252,69 @@ export const UsuarioPage: React.FC = () => {
 
       {/* Estatísticas */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6}>
           <UI.Card hover>
             <Box className="text-center">
               <Typography color="textSecondary" gutterBottom>
-                Total de Usuários
+                Total de Livros
               </Typography>
               <Typography variant="h4" component="div">
-                {usuarios.length}
+                {livros.length}
+              </Typography>
+            </Box>
+          </UI.Card>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <UI.Card hover>
+            <Box className="text-center">
+              <Typography color="textSecondary" gutterBottom>
+                Disponíveis
+              </Typography>
+              <Typography variant="h4" component="div">
+                {livros.filter(l => l.disponivel).length}
               </Typography>
             </Box>
           </UI.Card>
         </Grid>
       </Grid>
 
-      {/* Grid de Usuários */}
+      {/* Grid de Livros */}
       <Grid container spacing={3}>
-        {usuarios.length === 0 ? (
+        {livros.length === 0 ? (
           <Grid item xs={12}>
             <Box className="text-center py-12">
               <Typography variant="h6" color="textSecondary">
-                Nenhum usuário encontrado
+                Nenhum livro encontrado
               </Typography>
             </Box>
           </Grid>
         ) : (
-          usuarios.map(usuario => (
-            <Grid item xs={12} sm={6} md={4} key={usuario.id}>
+          livros.map(livro => (
+            <Grid item xs={12} sm={6} md={4} key={livro.id}>
               <UI.Card hover>
                 <Box className="flex justify-between items-start mb-3">
                   <Typography variant="h6" component="h3" className="pr-2">
-                    {usuario.nome}
+                    {livro.titulo}
                   </Typography>
                   <Chip
-                    label="Ativo"
-                    color="success"
+                    label={livro.disponivel ? 'Disponível' : 'Indisponível'}
+                    color={livro.disponivel ? 'success' : 'error'}
                     size="small"
                   />
                 </Box>
 
-                <Box className="space-y-2 mb-3">
+                <Box className="space-y-1 mb-3">
                   <Typography variant="body2" color="textSecondary">
-                    <strong>Email:</strong> {usuario.email}
+                    <strong>Autor:</strong> {livro.autor}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    <strong>Telefone:</strong> {usuario.telefone}
+                    <strong>Editora:</strong> {livro.editora}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    <strong>Endereço:</strong> {usuario.endereco}
+                    <strong>Ano:</strong> {livro.ano}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>ISBN:</strong> {livro.isbn}
                   </Typography>
                 </Box>
 
@@ -315,7 +324,7 @@ export const UsuarioPage: React.FC = () => {
                     variant="outlined"
                     color="warning"
                     startIcon={<Edit />}
-                    onClick={() => abrirModalEdicao(usuario.id)}
+                    onClick={() => abrirModalEdicao(livro.id)}
                     fullWidth
                   >
                     Editar
@@ -325,7 +334,7 @@ export const UsuarioPage: React.FC = () => {
                     variant="outlined"
                     color="error"
                     startIcon={<Delete />}
-                    onClick={() => deletarUsuario(usuario.id)}
+                    onClick={() => deletarLivro(livro.id)}
                     fullWidth
                   >
                     Excluir
@@ -341,7 +350,7 @@ export const UsuarioPage: React.FC = () => {
       <UI.Modal
         open={modalAberto}
         onClose={fecharModal}
-        title="Cadastrar Novo Usuário"
+        title="Cadastrar Novo Livro"
         actions={
           <Box sx={{ display: 'flex', gap: 1 }}>
             <UI.Button onClick={fecharModal} disabled={enviando}>
@@ -352,50 +361,58 @@ export const UsuarioPage: React.FC = () => {
               disabled={enviando}
               startIcon={enviando ? <CircularProgress size={16} /> : null}
             >
-              {enviando ? 'Cadastrando...' : 'Cadastrar Usuário'}
+              {enviando ? 'Cadastrando...' : 'Cadastrar Livro'}
             </UI.Button>
           </Box>
         }
       >
         <Box className="space-y-3">
           <TextField
-            name="nome"
-            label="Nome Completo"
-            value={formData.nome}
+            name="titulo"
+            label="Título"
+            value={formData.titulo}
             onChange={handleInputChange}
             required
             fullWidth
             margin="dense"
           />
           <TextField
-            name="email"
-            label="Email"
-            type="email"
-            value={formData.email}
+            name="autor"
+            label="Autor"
+            value={formData.autor}
             onChange={handleInputChange}
             required
             fullWidth
             margin="dense"
           />
           <TextField
-            name="telefone"
-            label="Telefone"
-            value={formData.telefone}
+            name="isbn"
+            label="ISBN"
+            value={formData.isbn}
             onChange={handleInputChange}
             required
             fullWidth
             margin="dense"
           />
           <TextField
-            name="endereco"
-            label="Endereço"
-            multiline
-            rows={2}
-            value={formData.endereco}
+            name="editora"
+            label="Editora"
+            value={formData.editora}
             onChange={handleInputChange}
             required
             fullWidth
             margin="dense"
+          />
+          <TextField
+            name="ano"
+            label="Ano de Publicação"
+            type="number"
+            value={formData.ano}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+            inputProps={{ min: 1000, max: 2025 }}
           />
         </Box>
       </UI.Modal>
@@ -404,7 +421,7 @@ export const UsuarioPage: React.FC = () => {
       <UI.Modal
         open={modalEdicaoAberto}
         onClose={fecharModalEdicao}
-        title="Editar Usuário"
+        title="Editar Livro"
         actions={
           <Box sx={{ display: 'flex', gap: 1 }}>
             <UI.Button onClick={fecharModalEdicao} disabled={enviando}>
@@ -415,50 +432,58 @@ export const UsuarioPage: React.FC = () => {
               disabled={enviando}
               startIcon={enviando ? <CircularProgress size={16} /> : null}
             >
-              {enviando ? 'Atualizando...' : 'Atualizar Usuário'}
+              {enviando ? 'Atualizando...' : 'Atualizar Livro'}
             </UI.Button>
           </Box>
         }
       >
         <Box className="space-y-3">
           <TextField
-            name="nome"
-            label="Nome Completo"
-            value={formData.nome}
+            name="titulo"
+            label="Título"
+            value={formData.titulo}
             onChange={handleInputChange}
             required
             fullWidth
             margin="dense"
           />
           <TextField
-            name="email"
-            label="Email"
-            type="email"
-            value={formData.email}
+            name="autor"
+            label="Autor"
+            value={formData.autor}
             onChange={handleInputChange}
             required
             fullWidth
             margin="dense"
           />
           <TextField
-            name="telefone"
-            label="Telefone"
-            value={formData.telefone}
+            name="isbn"
+            label="ISBN"
+            value={formData.isbn}
             onChange={handleInputChange}
             required
             fullWidth
             margin="dense"
           />
           <TextField
-            name="endereco"
-            label="Endereço"
-            multiline
-            rows={2}
-            value={formData.endereco}
+            name="editora"
+            label="Editora"
+            value={formData.editora}
             onChange={handleInputChange}
             required
             fullWidth
             margin="dense"
+          />
+          <TextField
+            name="ano"
+            label="Ano de Publicação"
+            type="number"
+            value={formData.ano}
+            onChange={handleInputChange}
+            required
+            fullWidth
+            margin="dense"
+            inputProps={{ min: 1000, max: 2025 }}
           />
         </Box>
       </UI.Modal>

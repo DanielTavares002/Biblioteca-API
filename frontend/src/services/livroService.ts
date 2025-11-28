@@ -24,8 +24,8 @@ export interface LivroResponse {
 }
 
 export const livroService = {
-    async getAll(pagina: number = 1, limite: number = 10): Promise<LivroResponse> {
-        const response = await api.get(`/livros?pagina=${pagina}&limite=${limite}`);
+    async getAll(): Promise<LivroResponse> {
+        const response = await api.get(`/livros`);
         return response.data;
     },
 

@@ -2,8 +2,8 @@ import api from './api';
 import type { Usuario, UsuarioResponse } from './types';
 
 export const usuarioService = {
-    async getAll(pagina: number = 1, limite: number = 10): Promise<UsuarioResponse> {
-        const response = await api.get(`/usuarios?pagina=${pagina}&limite=${limite}`);
+    async getAll(): Promise<UsuarioResponse> {
+        const response = await api.get(`/usuarios`);
         return response.data;
     },
     
