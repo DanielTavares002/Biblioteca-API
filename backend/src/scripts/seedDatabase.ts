@@ -4,10 +4,26 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Iniciando seed do banco de dados...')
+  console.log('🌱 Verificando estado do banco de dados...');
+
+  // Busca por qualquer livro, usuário ou secretário criado
+  const existingSecretarios = await prisma.secretario.findFirst();
+  const existingUsuarios = await prisma.usuario.findFirst();
+  const existingLivros = await prisma.livro.findFirst();
+
+  // Se já existirem dados, não executa o seed
+  if (existingSecretarios || existingUsuarios || existingLivros) {
+    console.log('✅ Banco de dados já possui dados. Seed NÃO será executado.');
+    console.log('📝 Para forçar uma nova seed, limpe as tabelas manualmente.');
+    return;
+  }
+
+  // Apenas se o banco estiver vazio
+  console.log('🧹 Banco de dados vazio detectado...');
+  console.log('🌱 Iniciando seed...')
 
   // Limpar tabelas existentes (cuidado em produção!)
-  console.log('🧹 Limpando dados existentes...')
+  console.log('🧹 Limpando possíveis dados existentes...')
   await prisma.emprestimo.deleteMany()
   await prisma.livro.deleteMany()
   await prisma.usuario.deleteMany()
